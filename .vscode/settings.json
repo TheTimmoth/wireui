@@ -1,0 +1,21 @@
+{
+  "python.pythonPath": "/usr/bin/python3",
+  "cSpell.ignoreWords": [
+    "atexit",
+    "genpsk",
+    "ipaddress",
+    "name",
+    "site",
+    "tojson",
+    "wireui"
+  ],
+  "python.formatting.provider": "yapf",
+  "python.formatting.yapfArgs": [
+    "--style",
+    "{BASED_ON_STYLE: pep8, INDENT_WIDTH: 2, INDENT_DICTIONARY_VALUE=true}"
+  ]
+  // "python.formatting.yapfArgs": [
+  //   "--style",
+  //   "{BASED_ON_STYLE: pep8, INDENT_WIDTH: 2, INDENT_DICTIONARY_VALUE=true, DEDENT_CLOSING_BRACKETS: true, COALESCE_BRACKETS: true, INDENT_CLOSING_BRACKETS: true}"
+  // ]
+}
