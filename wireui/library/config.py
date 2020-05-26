@@ -154,8 +154,9 @@ def _get_addresses_for_peers(server_peer_name: str, peers: tuple,
   for n in ip_networks:
     address_iterators.append([n, n.hosts()])
   for p in peers:
+    peer_addresses.update({p: {}})
     for i in address_iterators:
-      peer_addresses.update({p: {i[0]: next(i[1])}})
+      peer_addresses[p].update({i[0]: next(i[1])})
   return peer_addresses
 
 
