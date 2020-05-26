@@ -61,7 +61,7 @@ def _get_server_peer_config(
     peer_addresses: dict, server_peer_name: str) -> str:
   """ Write the config file for a server peer """
 
-  s = _get_interface_peer(
+  s = _get_interface_section(
       interface_peer_name=server_peer_name,
       peer_keys=peers[server_peer_name]["keys"],
       peer_addresses=peer_addresses,
@@ -69,7 +69,7 @@ def _get_server_peer_config(
       server_peer=True)
   for p in peers:
     if p != server_peer_name:
-      s += _get_noninterface_peer(
+      s += _get_peer_section(
           peer_name=p,
           peer_keys=peers[p]["keys"],
           peer_addresses=peer_addresses,
@@ -83,13 +83,13 @@ def _get_client_peer_config(peers: Peers, endpoint: str, port: int,
                             client_peer_name: str) -> str:
   """ Write the config file for a client peer """
 
-  s = _get_interface_peer(
+  s = _get_interface_section(
       interface_peer_name=client_peer_name,
       peer_keys=peers[client_peer_name]["keys"],
       peer_addresses=peer_addresses,
       port=port,
       server_peer=False)
-  s += _get_noninterface_peer(
+  s += _get_peer_section(
       peer_name=server_peer_name,
       peer_keys=peers[server_peer_name]["keys"],
       peer_addresses=peer_addresses,
@@ -100,10 +100,10 @@ def _get_client_peer_config(peers: Peers, endpoint: str, port: int,
   return s
 
 
-def _get_interface_peer(interface_peer_name: str, peer_keys: Keys,
-                        peer_addresses: dict, port: int,
-                        server_peer: bool) -> str:
-  """ Write an interface peer into a file """
+def _get_interface_section(interface_peer_name: str, peer_keys: Keys,
+                           peer_addresses: dict, port: int,
+                           server_peer: bool) -> str:
+  """ Get the interface section of a config file """
 
   s = f"# {interface_peer_name}\n"
   s += f"[Interface]\n"
@@ -119,19 +119,17 @@ def _get_interface_peer(interface_peer_name: str, peer_keys: Keys,
   return s
 
 
-def _get_noninterface_peer(
-    peer_name: str,
-    peer_keys: Keys,
-    peer_addresses: dict,
-    server_peer: bool,
-    allow_only_adapter_ip: bool,
-    endpoint: str = "",
-    port: int = 0,
-):
-  """ Write an non-interface peer into a file """
+def _get_peer_section(peer_name: str,
+                      peer_keys: Keys,
+                      peer_addresses: dict,
+                      server_peer: bool,
+                      allow_only_adapter_ip: bool,
+                      endpoint: str = "",
+                      port: int = 0):
+  """ Get the peer section of a config file """
 
   s = f"# {peer_name}\n"
-  s += f"[Interface]\n"
+  s += f"[Peer]\n"
   if server_peer:
     s += f"Endpoint = {endpoint}:{port}\n"
     s += "PersistentKeepAlive = 25\n"
