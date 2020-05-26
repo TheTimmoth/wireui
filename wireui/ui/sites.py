@@ -35,12 +35,11 @@ def add_site(w: WireUI) -> str:
 
   port = _get_port()
 
-  server_peer_name, client_peer_names = _get_peer_names()
+  main_peer_name, client_peer_names = _get_peer_names()
 
   try:
     w.add_site(
-        Site(site_name, endpoint, port, ip, server_peer_name,
-             client_peer_names))
+        Site(site_name, endpoint, port, ip, main_peer_name, client_peer_names))
   except SiteDoesExistError as e:
     print_error(0, "Site does already exist. Doing nothing...")
     print_error(0, e)
@@ -118,7 +117,7 @@ def _get_port() -> int:
 
 
 def _get_peer_names() -> tuple:
-  server_peer_name = input("Please enter the name of the server peer: ")
+  main_peer_name = input("Please enter the name of the server peer: ")
 
   client_peer_names = []
   name = None
@@ -126,8 +125,8 @@ def _get_peer_names() -> tuple:
     name = input(
         "Please enter the name of one client peer. (Leave empty when you have finished) "
     )
-    if name == server_peer_name or name in client_peer_names:
+    if name == main_peer_name or name in client_peer_names:
       print_error(0, "Error: The given name does already exist. Continuing...")
     elif name != "":
       client_peer_names.append(name)
-  return server_peer_name, client_peer_names
+  return main_peer_name, client_peer_names

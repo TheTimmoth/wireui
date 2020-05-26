@@ -34,7 +34,7 @@ class Site(NamedTuple):
   endpoint: str
   port: int
   ip_networks: str
-  server_peer_name: str
+  main_peer_name: str
   client_peer_names: list
 
 
@@ -72,7 +72,7 @@ class WireUI():
 
     peers = Peers()
     try:
-      peers[site.server_peer_name] = PeerItems({"keys": get_keys()})
+      peers[site.main_peer_name] = PeerItems({"keys": get_keys()})
     except PeerDoesExistError as e:
       raise e
 
@@ -86,7 +86,7 @@ class WireUI():
         "endpoint": site.endpoint,
         "ip_networks": site.ip_networks,
         "port": site.port,
-        "server_peer_name": site.server_peer_name,
+        "main_peer_name": site.main_peer_name,
         "peers": peers
     })
 

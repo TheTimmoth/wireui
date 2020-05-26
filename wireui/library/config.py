@@ -18,24 +18,24 @@ def write_config(site: SiteItems, wg_config_path: str) -> list:
   """ Create a json config file from the site parameters """
 
   ip_networks = [ipaddress.ip_network(n) for n in site["ip_networks"]]
-  peer_addresses = _get_addresses_for_peers(site["server_peer_name"],
+  peer_addresses = _get_addresses_for_peers(site["main_peer_name"],
                                             site["peers"], ip_networks)
 
   prepare_directory(wg_config_path)
 
   created_files = []
   for p in list(site["peers"]):
-    if p == site["server_peer_name"]:
+    if p == site["main_peer_name"]:
       created_files.append(
           write_file(
               os.path.join(wg_config_path, f"wg_{p}.conf"),
-              _get_server_peer_config(
+              _get_main_peer_config(
                   peers=site["peers"],
                   endpoint=site["endpoint"],
                   port=site["port"],
                   ip_networks=ip_networks,
                   peer_addresses=peer_addresses,
-                  server_peer_name=site["server_peer_name"])))
+                  main_peer_name=site["main_peer_name"])))
     else:
       created_files.append(
           write_file(
@@ -45,7 +45,7 @@ def write_config(site: SiteItems, wg_config_path: str) -> list:
                   endpoint=site["endpoint"],
                   port=site["port"],
                   peer_addresses=peer_addresses,
-                  server_peer_name=site["server_peer_name"],
+                  main_peer_name=site["main_peer_name"],
                   client_peer_name=p)))
   return created_files
 
@@ -56,30 +56,30 @@ def delete_config(site_name: str, wg_config_path: str):
   delete_directory(os.path.join(wg_config_path))
 
 
-def _get_server_peer_config(
-    peers: Peers, endpoint: str, port: int, ip_networks: ipaddress.ip_network,
-    peer_addresses: dict, server_peer_name: str) -> str:
+def _get_main_peer_config(peers: Peers, endpoint: str, port: int,
+                          ip_networks: ipaddress.ip_network,
+                          peer_addresses: dict, main_peer_name: str) -> str:
   """ Write the config file for a server peer """
 
   s = _get_interface_section(
-      interface_peer_name=server_peer_name,
-      peer_keys=peers[server_peer_name]["keys"],
+      interface_peer_name=main_peer_name,
+      peer_keys=peers[main_peer_name]["keys"],
       peer_addresses=peer_addresses,
       port=port,
-      server_peer=True)
+      main_peer=True)
   for p in peers:
-    if p != server_peer_name:
+    if p != main_peer_name:
       s += _get_peer_section(
           peer_name=p,
           peer_keys=peers[p]["keys"],
           peer_addresses=peer_addresses,
-          server_peer=False,
+          main_peer=True,
           allow_only_adapter_ip=True)
   return s
 
 
 def _get_client_peer_config(peers: Peers, endpoint: str, port: int,
-                            peer_addresses: dict, server_peer_name: str,
+                            peer_addresses: dict, main_peer_name: str,
                             client_peer_name: str) -> str:
   """ Write the config file for a client peer """
 
@@ -88,12 +88,13 @@ def _get_client_peer_config(peers: Peers, endpoint: str, port: int,
       peer_keys=peers[client_peer_name]["keys"],
       peer_addresses=peer_addresses,
       port=port,
-      server_peer=False)
+      main_peer=False)
   s += _get_peer_section(
-      peer_name=server_peer_name,
-      peer_keys=peers[server_peer_name]["keys"],
+      peer_name=main_peer_name,
+      peer_keys=peers[main_peer_name]["keys"],
       peer_addresses=peer_addresses,
-      server_peer=True,
+      main_peer=False,
+      main_peer_keys=peers[client_peer_name]["keys"],
       allow_only_adapter_ip=False,
       endpoint=endpoint,
       port=port)
@@ -102,13 +103,13 @@ def _get_client_peer_config(peers: Peers, endpoint: str, port: int,
 
 def _get_interface_section(interface_peer_name: str, peer_keys: Keys,
                            peer_addresses: dict, port: int,
-                           server_peer: bool) -> str:
+                           main_peer: bool) -> str:
   """ Get the interface section of a config file """
 
   s = f"# {interface_peer_name}\n"
   s += f"[Interface]\n"
-  s += _get_address_line(interface_peer_name, peer_addresses, server_peer=True)
-  if server_peer:
+  s += _get_address_line(interface_peer_name, peer_addresses, main_peer=True)
+  if main_peer:
     s += f"ListenPort = {port}\n"
     #TODO: firewall rules
   else:
@@ -122,19 +123,23 @@ def _get_interface_section(interface_peer_name: str, peer_keys: Keys,
 def _get_peer_section(peer_name: str,
                       peer_keys: Keys,
                       peer_addresses: dict,
-                      server_peer: bool,
                       allow_only_adapter_ip: bool,
+                      main_peer: bool,
+                      main_peer_keys: dict = {},
                       endpoint: str = "",
                       port: int = 0):
   """ Get the peer section of a config file """
 
   s = f"# {peer_name}\n"
   s += f"[Peer]\n"
-  if server_peer:
+  if not main_peer:
     s += f"Endpoint = {endpoint}:{port}\n"
     s += "PersistentKeepAlive = 25\n"
   s += f"PublicKey = " + peer_keys["pubkey"] + "\n"
-  s += f"PresharedKey = " + peer_keys["psk"] + "\n"
+  if main_peer:
+    s += f"PresharedKey = " + peer_keys["psk"] + "\n"
+  else:
+    s += f"PresharedKey = " + main_peer_keys["psk"] + "\n"
   s += _get_allowed_ips_line(
       peer_name=peer_name,
       peer_addresses=peer_addresses,
@@ -143,12 +148,12 @@ def _get_peer_section(peer_name: str,
   return s
 
 
-def _get_addresses_for_peers(server_peer_name: str, peers: tuple,
+def _get_addresses_for_peers(main_peer_name: str, peers: tuple,
                              ip_networks: ipaddress.ip_network):
   """ Create ip addresses for each peer """
 
   # #Server peer first element. Should get address "1"
-  # peer_addresses = {server_peer_name: None}
+  # peer_addresses = {main_peer_name: None}
   peer_addresses = {}
   address_iterators = []
   for n in ip_networks:
@@ -160,7 +165,7 @@ def _get_addresses_for_peers(server_peer_name: str, peers: tuple,
   return peer_addresses
 
 
-def _get_address_line(peer_name: str, peer_addresses: dict, server_peer: bool):
+def _get_address_line(peer_name: str, peer_addresses: dict, main_peer: bool):
   """ Create the Address line """
 
   address_line = "Address = "
