@@ -19,7 +19,8 @@ def write_file(path: str, s: str = "") -> str:
 def read_file(path: str) -> str:
   """ Get the content of a file """
   try:
-    return open(path, "r").read()
+    with open(path, "r") as f:
+      return f.read()
   except FileNotFoundError:
     return ""
 

@@ -1,7 +1,7 @@
 # wireui
 
 A tool for creating and managing wireguard configs  
-Version 0.1.0a  
+Version 0.1.0a2  
 &copy; 2020 Tim Schlottmann  
 
 Hint
