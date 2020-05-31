@@ -6,4 +6,4 @@ Version 0.1.0a2
 
 Hint
 -
-At the moment only the creation of a server-client-configuration is supported
+At the moment only the creation of a simple server-client-configuration is supported
