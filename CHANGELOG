@@ -18,6 +18,7 @@ Release 0.1.0a2
 Release 0.1.0a3
 * Added:
   - [Library] [UI] (#5) Allow any peer to connect to multiple endpoints
+  - [Library] [UI] (#6) Add custom "AllowedIPs" to a peer
   - [Library] [UI] (#8) Add connection matrix
 * Fixed:
   - [UI] Setting "verbosity" is now used at all

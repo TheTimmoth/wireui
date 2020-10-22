@@ -1,3 +1,5 @@
+import ipaddress
+
 from .console import print_error, print_message
 
 from ..library import ConnectionTable
@@ -32,8 +34,7 @@ def get_new_peer_properties(peer_name: str, ct: ConnectionTable) -> Peer:
     endpoint = get_endpoint()
     port = get_port()
 
-    #TODO: add additional_allowed_ips
-    additional_allowed_ips = []
+    additional_allowed_ips = get_additional_allowed_ips()
   else:
     endpoint = ""
     port = 0
@@ -67,6 +68,25 @@ def get_port() -> int:
         print_error(0, "Error: The port should be between 0 and 65535")
         continue
     return port
+
+
+# TODO: is correct messages
+def get_additional_allowed_ips() -> list:
+  l = []
+  if yes_no_menu("Do you want to add an additional AllowedIP network?"):
+    while True:
+      try:
+        l.append(str(ipaddress.ip_network(input("Please enter an additional ip network to add to the AllowedIPs List: ")).with_prefixlen))
+      except ValueError as e:
+        print_error(0, "Error: Input is not a valid IP network.")
+        print_error(2, e)
+      else:
+        if yes_no_menu("Do you want to add another network?"):
+          continue
+        else:
+          break
+
+  return l
 
 
 # TODO: is correct messages

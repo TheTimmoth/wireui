@@ -91,6 +91,7 @@ def _get_peer_section(name: str, peer: PeerItems, interface_peer_name: str, inte
     s += f"PresharedKey = " + interface_peer["keys"]["psk"] + "\n"
   s += _get_allowed_ips_line(
       peer_name=name,
+      peer=peer,
       peer_addresses=peer_addresses,
       redirect_all_traffic=interface_peer["redirect_all_traffic"])
   s += "\n"
@@ -123,7 +124,7 @@ def _get_address_line(peer_name: str, peer_addresses: dict, main_peer: bool):
   return address_line[:-2] + "\n"
 
 
-def _get_allowed_ips_line(peer_name: str, peer_addresses: dict,
+def _get_allowed_ips_line(peer_name: str, peer: PeerItems, peer_addresses: dict,
                           redirect_all_traffic: bool):
   """ Create the AllowedIPs line """
 
@@ -137,5 +138,8 @@ def _get_allowed_ips_line(peer_name: str, peer_addresses: dict,
     else:
       allowed_ips_line += str(peer_addresses[peer_name][network]) + "/" + str(
           network.max_prefixlen) + ", "
+    for s in peer["additional_allowed_ips"]:
+      allowed_ips_line += s + ", "
+
 
   return allowed_ips_line[:-2] + "\n"

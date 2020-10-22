@@ -2,6 +2,7 @@ from .console import print_error
 from .console import print_message
 
 from .shared import create_wireguard_config
+from .shared import get_additional_allowed_ips
 from .shared import get_endpoint
 from .shared import get_new_peer_properties
 from .shared import get_port
@@ -94,8 +95,10 @@ def edit_peer_connections(w: WireUI, site_name: str):
         port = get_port()
       else:
         port = peer_old.port
-      # TODO: if peer_old.additional_allowed_ips == []
-      additional_allowed_ips = []
+      if peer_old.additional_allowed_ips == []:
+        additional_allowed_ips = get_additional_allowed_ips()
+      else:
+        additional_allowed_ips = []
     else:
       endpoint = peer_old.endpoint
       port = peer_old.port
