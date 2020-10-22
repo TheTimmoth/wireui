@@ -92,6 +92,7 @@ def _get_peer_section(name: str, peer: PeerItems, interface_peer_name: str, inte
   s += _get_allowed_ips_line(
       peer_name=name,
       peer=peer,
+      interface_peer=interface_peer,
       peer_addresses=peer_addresses,
       redirect_all_traffic=interface_peer["redirect_all_traffic"])
   s += "\n"
@@ -124,13 +125,13 @@ def _get_address_line(peer_name: str, peer_addresses: dict, main_peer: bool):
   return address_line[:-2] + "\n"
 
 
-def _get_allowed_ips_line(peer_name: str, peer: PeerItems, peer_addresses: dict,
+def _get_allowed_ips_line(peer_name: str, peer: PeerItems, interface_peer: PeerItems, peer_addresses: dict,
                           redirect_all_traffic: bool):
   """ Create the AllowedIPs line """
 
   allowed_ips_line = "AllowedIPs = "
   for network in peer_addresses[peer_name].keys():
-    if redirect_all_traffic:
+    if redirect_all_traffic and peer_name in interface_peer["outgoing_connected_peers"]:
       if network.version == 4:
         allowed_ips_line += "0.0.0.0/0, "
       else:
