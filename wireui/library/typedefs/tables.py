@@ -99,6 +99,14 @@ class ConnectionTable(Table):
     return f"{type(self).__name__}({self.row_names})"
 
 
+  def setitem(self, i: int, j: int, v: any):
+    """ Set the item in row i and column j to value v """
+    if i == j and v == 1:
+      raise ValueError("A peer cannot be connected to itself. Please make sure that all diagonal elements are '0'!")
+
+    super().setitem(i, j, v)
+
+
   def update(self, s: str):
     """ Updates the table with a str representation of a ConnectionTable object """
 
@@ -119,7 +127,9 @@ class ConnectionTable(Table):
         self.setitem(i, j, int(s[i][j]))
 
 
-  def get_connected_peers(self, name: str) -> list:
+  def get_outgoing_connected_peers(self, name: str) -> list:
+    """ Get a list of all peers that peer 'name' has an outgoing connection to """
+    # Get row index for peer
     row = -1
     for i in range(self.n):
       if self.column_names[i] == name:
@@ -128,9 +138,30 @@ class ConnectionTable(Table):
     if row == -1:
       raise PeerDoesNotExistError(name)
 
+    # List all peers with an outgoing connection to that peer
     l = []
     for i in range(self.m):
       if self.getitem(row, i):
         l.append(self.column_names[i])
+
+    return l
+
+  def get_ingoing_connected_peers(self, name: str) -> list:
+    """ Get a list of all peers that peer 'name' has an ingoing connection from """
+    # Get column index for peer
+    column = -1
+    for i in range(self.m):
+      if name == self.column_names[i]:
+        column = i
+        break
+
+    if column == -1:
+      raise PeerDoesNotExistError(name)
+
+    # List all peers with an ingoing connection from that peer
+    l = []
+    for i in range(self.n):
+      if self.getitem(i, column):
+        l.append(self.row_names[i])
 
     return l

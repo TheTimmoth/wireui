@@ -7,6 +7,8 @@ from .library import SiteDoesNotExistError
 from .library import WireguardNotFoundError
 from .library import WireUI
 
+from .ui import run_ui
+
 __all__ = [
     "PeerDoesExistError",
     "PeerDoesNotExistError",

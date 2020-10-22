@@ -62,8 +62,11 @@ class TestConnectionTable(unittest.TestCase):
     for i in range(4):
       for j in range(4):
         self.assertEqual(0, t.getitem(i, j))
-        t.setitem(i, j, 1)
-        self.assertEqual(1, t.getitem(i, j))
+        if (i == j):
+          pass
+        else:
+          t.setitem(i, j, 1)
+          self.assertEqual(1, t.getitem(i, j))
       t.setrow(i, r)
       for j in range(4):
         self.assertEqual(r[j], t.getitem(i, j))
@@ -83,7 +86,7 @@ class TestConnectionTable(unittest.TestCase):
     s = "        Alpha Ypsilon Beta Delta\n  Alpha 0     0       0    0    \nYpsilon 0     0       0    0    \n   Beta 0     0       0    0    \n  Delta 0     0       0    0    "
     self.assertEqual(s, str(t))
 
-    s = "        Alpha Ypsilon Beta Delta\n  Alpha 1     2       3    4    \nYpsilon 5     6       7    8    \n   Beta 9     10      11   12   \n  Delta 13    14      15   16   "
+    s = "        Alpha Ypsilon Beta Delta\n  Alpha 0     2       3    4    \nYpsilon 5     0       7    8    \n   Beta 9     10      0    12   \n  Delta 13    14      15   0    "
     t.update(s)
     self.assertEqual(s, str(t))
 
@@ -91,13 +94,27 @@ class TestConnectionTable(unittest.TestCase):
       for j in range(t.m):
         self.assertTrue(isinstance(t.getitem(i,j), int))
 
-  def test_get_connected_peers(self):
+  def test_get_outgoing_connected_peers(self):
     t = ConnectionTable(["Alpha", "Ypsilon", "Beta", "Delta"])
     s = "        Alpha Ypsilon Beta Delta\n  Alpha 0     1       0    1    \nYpsilon 0     0       0    0    \n   Beta 0     0       0    0    \n  Delta 0     0       0    0    "
     t.update(s)
 
-    l = t.get_connected_peers("Alpha")
+    l = t.get_outgoing_connected_peers("Alpha")
     self.assertEqual(["Ypsilon", "Delta"], l)
+
+  def test_get_ingoing_connected_peers(self):
+    t = ConnectionTable(["Alpha", "Ypsilon", "Beta", "Delta"])
+    s = "        Alpha Ypsilon Beta Delta\n  Alpha 0     1       0    1    \nYpsilon 0     0       0    0    \n   Beta 0     0       0    0    \n  Delta 0     0       0    0    "
+    t.update(s)
+
+    l = t.get_ingoing_connected_peers("Ypsilon")
+    self.assertEqual(["Alpha"], l)
+    l = t.get_ingoing_connected_peers("Delta")
+    self.assertEqual(["Alpha"], l)
+
+  def test_error(self):
+    t = ConnectionTable( ["Alpha", "Beta", "Gamma", "Delta"])
+    self.assertRaises(ValueError, t.setitem, 1, 1, 1)
 
 
 if __name__ == "__main__":

@@ -4,6 +4,7 @@ import os
 import subprocess
 import tempfile
 
+from .typedefs import ConnectionTable
 from .typedefs import JsonDict
 from .typedefs import JSONDecodeError
 
@@ -34,25 +35,39 @@ def read_file(path: str) -> str:
 #   except JSONDecodeError as e:
 #     raise e
 
-
-def edit_dict(d: JsonDict = JsonDict()) -> JsonDict:
+def edit_string(s: str = "") -> str:
   with tempfile.NamedTemporaryFile(mode='w+t', delete=False) as f:
     n = f.name
-    f.write(str(d))
+    f.write(s)
 
+  subprocess.run(["editor", n])
+  s = read_file(n)
+
+  os.remove(n)
+
+  return s
+
+def edit_dict(d: JsonDict = JsonDict()) -> JsonDict:
   valid = False
   while not valid:
-    subprocess.run(["nano", n])
     try:
-      d = JsonDict(read_file(n))
+      d = JsonDict(edit_string(str(d)))
     except json.JSONDecodeError:
       pass
     else:
       valid = True
-
-  os.remove(n)
   return d
 
+def edit_connection_table(ct: ConnectionTable) -> ConnectionTable:
+  valid = False
+  while not valid:
+    try:
+      ct.update(edit_string(str(ct)))
+    except ValueError:
+      pass
+    else:
+      valid = True
+  return ct
 
 def prepare_directory(path: str):
   """ Clears existing config files in a directory """
