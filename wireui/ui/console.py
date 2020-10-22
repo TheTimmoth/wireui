@@ -10,6 +10,8 @@ _verbosity = 2
 def set_verbosity(verbosity: int = 0):
   """Sets the verbosity level of the console output"""
 
+  global _verbosity
+
   assert isinstance(
       verbosity, int
   ), f"verbosity should be <class \'int\'> and not {str(type(verbosity))}"
