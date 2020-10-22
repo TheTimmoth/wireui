@@ -1,6 +1,6 @@
 Release 0.1.0a1
 * Initial Release
-* Hints
+* Known limitations
   - this version only supports the creation of a roadwarrior-configuration
   - interface is not stable and can change drastically in future versions
 
@@ -11,7 +11,7 @@ Release 0.1.0a2
   - [Library] (#1) "[Peer]" sections in config file had heading "[Interface]"
   - [Library] (#2) Only one IP network was added to the config file in dual-stack configurations
   - [Library] (#4) The psk of the main peer in the config files of the non-main-peers was wrong
-* Hints
+* Known limitations
   - this version only supports the creation of a roadwarrior-configuration
   - interface is not stable and can change drastically in future versions
 
@@ -25,5 +25,5 @@ Release 0.1.0a3
 * Changed:
   - [UI] Existing site and peer names are shown more frequently (if it makes sense)
   - Clarification of some variable names and descriptions
-* Hints:
+* Known limitations:
   - interface is not stable and can change drastically in future versions
