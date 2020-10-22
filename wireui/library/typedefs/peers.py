@@ -5,10 +5,10 @@
 # from collections import UserDict  # creates not JSON serializable error
 from typing import Dict
 
-#Evaluate TypedDict when python3.8 is available
+# TODO: Evaluate TypedDict when python3.8 is available
 Keys = dict
 
-#Evaluate TypedDict when python3.8 is available
+# TODO: Evaluate TypedDict when python3.8 is available
 PeerItems = dict
 
 

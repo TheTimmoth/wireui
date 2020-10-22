@@ -20,7 +20,10 @@ from .settings import Settings
 from .sites import SiteItems
 from .sites import Sites
 
+from .tables import ConnectionTable
+
 __all__ = [
+    "ConnectionTable",
     "JSONDecodeError",
     "JsonDict",
     "Keys",

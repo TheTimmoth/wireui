@@ -3,12 +3,18 @@ import ipaddress
 from .console import print_message
 from .console import print_error
 
+from .shared import create_wireguard_config
+from .shared import get_new_peer_properties
+from .shared import yes_no_menu
+
+from ..library import edit_connection_table
+from ..library import edit_string
+from ..library import ConnectionTable
+from ..library import Peer
 from ..library import Site
 from ..library import SiteDoesExistError
 from ..library import SiteDoesNotExistError
 from ..library import WireUI
-
-from .shared import yes_no_menu
 
 
 def list_sites(w: WireUI) -> int:
@@ -31,20 +37,26 @@ def add_site(w: WireUI) -> str:
   if yes_no_menu("Do you want to use IPv6?"):
     ip.append(_get_ip_network(6))
 
-  endpoint = _get_endpoint()
+  peer_names = _get_peer_names()
 
-  port = _get_port()
+  # Editing of the connection table
+  ct = ConnectionTable(peer_names)
+  input("Please edit the connection table. Press ENTER to continue...")
+  ct = edit_connection_table(ct)
 
-  main_peer_name, client_peer_names = _get_peer_names()
+  # Create peer list
+  peers = []
+  for p in peer_names:
+    peers.append(get_new_peer_properties(p, ct))
 
   try:
     w.add_site(
-        Site(site_name, endpoint, port, ip, main_peer_name, client_peer_names))
+        Site(site_name, ip, peers))
   except SiteDoesExistError as e:
     print_error(0, "Site does already exist. Doing nothing...")
     print_error(0, e)
 
-  w.create_wireguard_config(site_name)
+  create_wireguard_config(w, site_name)
 
   return site_name
 
@@ -73,10 +85,7 @@ def get_site_name(w: WireUI, should_exist: bool) -> str:
       print_error(0, f"Error: {name} does already exist.")
 
 
-def _get_endpoint() -> str:
-  return input("Please enter the URL or IP address of the server: ")
-
-
+# TODO: is correct messages
 def _get_ip_network(ip_version: int = 4) -> str:
   while True:
     if ip_version == 4:
@@ -101,32 +110,44 @@ def _get_ip_network(ip_version: int = 4) -> str:
       return str(ip_network.with_prefixlen)
 
 
-def _get_port() -> int:
-  while True:
-    port = input("Please enter the port the adapter should listen on: ")
-    try:
-      port = int(port)
-    except ValueError:
-      print_error(0, "Error: The port was not a valid integer.")
-      continue
-    else:
-      if port <= 0 or port > 65535:
-        print_error(0, "Error: The port should be between 0 and 65535")
-        continue
-    return port
-
-
 def _get_peer_names() -> tuple:
-  main_peer_name = input("Please enter the name of the server peer: ")
+  # Get peer names
+  peer_names = input("Please enter the name of the peers (use ' ' as separation): ")
+  peer_names = _convert_str_to_list(peer_names)
 
-  client_peer_names = []
-  name = None
-  while name != "":
-    name = input(
-        "Please enter the name of one client peer. (Leave empty when you have finished) "
-    )
-    if name == main_peer_name or name in client_peer_names:
-      print_error(0, "Error: The given name does already exist. Continuing...")
-    elif name != "":
-      client_peer_names.append(name)
-  return main_peer_name, client_peer_names
+  # Check names
+  peer_names = _convert_list_to_str(peer_names)
+
+  correct = False
+  while not correct:
+    correct = yes_no_menu("Is everything correct?")
+    if not correct:
+      peer_names = edit_string(peer_names)
+      peer_names = _convert_str_to_list(peer_names)
+      peer_names = _convert_list_to_str(peer_names)
+
+  peer_names = _convert_str_to_list(peer_names)
+  return peer_names
+
+def _convert_str_to_list(peer_names: str) -> list:
+  """ Convert a str to a list.
+
+  Doubled entires are removed and the list is sorted. """
+
+  peer_names = list(set(peer_names.split()))
+  peer_names.sort()
+  return peer_names
+
+def _convert_list_to_str(peer_names: list) -> str:
+  """ Convert a list to a str.
+
+  Elements are separated with ' '"""
+
+  print_message(0, "The following peers has been detected:")
+  s = ""
+  for p in peer_names:
+    print_message(0, str(p))
+    s += f"{p} "
+  s = s[:-1]
+
+  return s

@@ -31,18 +31,25 @@ from .typedefs import Sites
 
 class Site(NamedTuple):
   name: str
+  ip_networks: str
+  peers: list
+
+
+class Peer(NamedTuple):
+  name: str
+  additional_allowed_ips: list
+  outgoing_connected_peers: list
+  ingoing_connected_peers: list
   endpoint: str
   port: int
-  ip_networks: str
-  main_peer_name: str
-  client_peer_names: list
+  redirect_all_traffic: bool
 
 
 class WireUI():
   """ Class for managing wireguard config files """
 
   def __init__(self, settings_path: Optional[str] = None):
-    _DEFAULT_SETTINGS = {
+    default_settings = {
         "verbosity": 0,
         "sites_file_path": "./sites.json",
         "wg_config_path": "./wg",
@@ -51,11 +58,11 @@ class WireUI():
     if settings_path:
       self.settings_path = settings_path
       try:
-        self._settings = Settings(read_file(settings_path), _DEFAULT_SETTINGS)
+        self._settings = Settings(read_file(settings_path), default_settings)
       except JSONDecodeError as e:
         raise e
     else:
-      self._settings = Settings(defaults=_DEFAULT_SETTINGS)
+      self._settings = Settings(defaults=default_settings)
 
     self._sites = Sites(read_file(self._settings.get("sites_file_path")))
 
@@ -71,22 +78,22 @@ class WireUI():
       raise SiteDoesExistError(site.name)
 
     peers = Peers()
-    try:
-      peers[site.main_peer_name] = PeerItems({"keys": get_keys()})
-    except PeerDoesExistError as e:
-      raise e
-
-    for p in site.client_peer_names:
+    for p in site.peers:
       try:
-        peers[p] = PeerItems({"keys": get_keys()})
+        peers[p.name] = PeerItems({
+          "keys": get_keys(),
+          "additional_allowed_ips": p.additional_allowed_ips,
+          "outgoing_connected_peers": p.outgoing_connected_peers,
+          "ingoing_connected_peers": p.ingoing_connected_peers,
+          "endpoint": p.endpoint,
+          "port": p.port,
+          "redirect_all_traffic": p.redirect_all_traffic,
+        })
       except PeerDoesExistError as e:
         raise e
 
     self._sites[site.name] = SiteItems({
-        "endpoint": site.endpoint,
         "ip_networks": site.ip_networks,
-        "port": site.port,
-        "main_peer_name": site.main_peer_name,
         "peers": peers
     })
 
@@ -108,38 +115,70 @@ class WireUI():
 
     return len(self._sites)
 
-  def get_peers(self, site_name: str) -> list:
-    """ Get all existing peers from a site """
+  def get_peer_names(self, site_name: str) -> list:
+    """ Get name of all existing peers from a site """
 
     if site_name not in self._sites:
       raise SiteDoesNotExistError(site_name)
 
     return list(self._sites[site_name]["peers"])
 
-  def add_peer(self, site_name: str, peer_name: str):
+  def add_peer(self, site_name: str, peer: Peer):
     """ Add a peer to a site """
 
     if site_name not in self._sites:
       raise SiteDoesNotExistError(site_name)
 
-    if peer_name in self._sites[site_name]["peers"]:
-      raise PeerDoesExistError(peer_name)
+    if peer.name in self._sites[site_name]["peers"]:
+      raise PeerDoesExistError(peer.name)
 
-    self._sites[site_name]["peers"][peer_name] = PeerItems({
-        "keys": get_keys()
+    self._sites[site_name]["peers"][peer.name] = PeerItems({
+        "keys": get_keys(),
+        "additional_allowed_ips": peer.additional_allowed_ips,
+        "outgoing_connected_peers": peer.outgoing_connected_peers,
+        "ingoing_connected_peers": peer.ingoing_connected_peers,
+        "endpoint": peer.endpoint,
+        "port": peer.port,
+        "redirect_all_traffic": peer.redirect_all_traffic,
     })
 
-  def add_peers_from_list(self, site_name: str, peer_names: list):
-    """ Add multiple peers to a site """
+  def get_peer(self, site_name: str, peer_name: str) -> Peer:
+    """ Get a peer from a site """
 
     if site_name not in self._sites:
       raise SiteDoesNotExistError(site_name)
 
-    for p in peer_names:
-      try:
-        self.add_peer(site_name, p)
-      except PeerDoesExistError as e:
-        raise e
+    if peer_name not in self._sites[site_name]["peers"]:
+      raise PeerDoesNotExistError(peer_name)
+
+    return Peer(
+      peer_name,
+      self._sites[site_name]["peers"][peer_name]["additional_allowed_ips"],
+      self._sites[site_name]["peers"][peer_name]["outgoing_connected_peers"],
+      self._sites[site_name]["peers"][peer_name]["ingoing_connected_peers"],
+      self._sites[site_name]["peers"][peer_name]["endpoint"],
+      self._sites[site_name]["peers"][peer_name]["port"],
+      self._sites[site_name]["peers"][peer_name]["redirect_all_traffic"],
+    )
+
+  def set_peer(self, site_name: str, peer: Peer):
+    """ Set a peer in a site """
+
+    if site_name not in self._sites:
+      raise SiteDoesNotExistError(site_name)
+
+    if peer.name not in self._sites[site_name]["peers"]:
+      raise PeerDoesNotExistError(peer.name)
+
+    self._sites[site_name]["peers"][peer.name] = PeerItems({
+        "keys": self._sites[site_name]["peers"][peer.name]["keys"],
+        "additional_allowed_ips": peer.additional_allowed_ips,
+        "outgoing_connected_peers": peer.outgoing_connected_peers,
+        "ingoing_connected_peers": peer.ingoing_connected_peers,
+        "endpoint": peer.endpoint,
+        "port": peer.port,
+        "redirect_all_traffic": peer.redirect_all_traffic,
+    })
 
   def delete_peer(self, site_name: str, peer_name: str):
     """ Delete a peer from a site """
@@ -198,8 +237,8 @@ class WireUI():
     delete_config(site_name,
                   path.join(self._settings.get("wg_config_path"), site_name))
 
-  def get_settings(self, setting: str) -> list:
-    """ Get all setting """
+  def get_setting_names(self, setting: str) -> list:
+    """ Get names of all existing settings """
 
     return list(self._settings)
 

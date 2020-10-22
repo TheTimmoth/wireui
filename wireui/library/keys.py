@@ -47,4 +47,4 @@ def _run(*args, **kwargs) -> str:
         **kwargs).stdout.decode("utf-8").strip()
   except FileNotFoundError as e:
     raise WireguardNotFoundError(
-        "Wireguard not found. Please install it or add it to $PATH")
+        "Wireguard not found. Please install it and/or make shure it is available via $PATH")
