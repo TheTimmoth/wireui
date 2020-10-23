@@ -26,7 +26,7 @@ def create_wireguard_config(w: WireUI, site_name: str):
   print_message(0, f"{len(created_files)} file(s) have been created.")
 
 
-def get_new_peer_properties(peer_name: str, ct: ConnectionTable) -> Peer:
+def get_new_peer_properties(w: WireUI, site_name: str, peer_name: str, ct: ConnectionTable) -> Peer:
   print_message(0, f"Collecting properties of peer {peer_name}...")
 
   # If peer has ingoing connections endpoint and port is needed
@@ -34,7 +34,15 @@ def get_new_peer_properties(peer_name: str, ct: ConnectionTable) -> Peer:
     endpoint = get_endpoint()
     port = get_port()
     persistent_keep_alive = get_persistent_keep_alive()
-    additional_allowed_ips = get_additional_allowed_ips()
+    allow_ipv4 = False
+    allow_ipv6 = False
+    for n in w.get_networks(site_name):
+      v = ipaddress.ip_network(n).version
+      if v == 4:
+        allow_ipv4 = True
+      elif v == 6:
+        allow_ipv6 = True
+    additional_allowed_ips = get_additional_allowed_ips(allow_ipv4, allow_ipv6)
   else:
     endpoint = ""
     port = 0
@@ -79,20 +87,30 @@ def get_persistent_keep_alive() -> int:
 
 
 # TODO: is correct messages
-def get_additional_allowed_ips() -> list:
+def get_additional_allowed_ips(allow_ipv4: bool, allow_ipv6: bool) -> list:
   l = []
   if yes_no_menu("Do you want to add an additional AllowedIP network?"):
     while True:
-      try:
-        l.append(str(ipaddress.ip_network(input("Please enter an additional ip network to add to the AllowedIPs List: ")).with_prefixlen))
-      except ValueError as e:
-        print_error(0, "Error: Input is not a valid IP network.")
-        print_error(2, e)
-      else:
-        if yes_no_menu("Do you want to add another network?"):
-          continue
+      while True:
+        try:
+          a = ipaddress.ip_network(input("Please enter an additional ip network to add to the AllowedIPs List: "))
+        except ValueError as e:
+          print_error(0, "Error: Input is not a valid IP network.")
+          print_error(2, e)
         else:
-          break
+          if not allow_ipv4 and a.version == 4:
+            print_message(0, "IPv6 only network. An IPv4 address is not allowed!")
+          elif not allow_ipv6 and a.version == 6:
+            print_message(0, "IPv4 only network. An IPv6 address is not allowed!")
+          else:
+            break
+
+      l.append(str(a.with_prefixlen))
+
+      if yes_no_menu("Do you want to add another network?"):
+        continue
+      else:
+        break
 
   return l
 

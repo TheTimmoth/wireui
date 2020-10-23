@@ -94,6 +94,7 @@ class ConnectionTable(Table):
     for i in range(self.n):
       for j in range(self.n):
         self.setitem(i, j, 0)
+      self.setitem(i, self.m - 1, "None")
 
   def __repr__(self):
     return f"{type(self).__name__}({self.row_names})"
@@ -109,10 +110,7 @@ class ConnectionTable(Table):
     if j == self.m - 1 and not isinstance(v, str):
       raise ValueError(f"v ({v}) has to be an str not {type(v)}")
 
-    if j < self.m - 1:
-      super().setitem(i, j, v)
-    else:
-      super().setitem(i, j, self._process_main_peer(i, v))
+    super().setitem(i, j, v)
 
 
   def update(self, s: str):
@@ -216,8 +214,3 @@ class ConnectionTable(Table):
 
     if msg:
       raise ValueError(msg[:-1])
-
-  def _process_main_peer(self, i: int, v: str):
-    if v == "None":
-      return None
-    return v

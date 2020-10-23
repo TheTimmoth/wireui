@@ -231,6 +231,10 @@ class WireUI():
       raise SiteDoesNotExistError(site_name)
     return len(self._sites[site_name]["peers"])
 
+
+  def get_networks(self, site_name: str) -> list:
+    return self._sites[site_name]["ip_networks"]
+
   def create_wireguard_config(self, site_name: str) -> list:
     """ Write the wireguard config files """
 

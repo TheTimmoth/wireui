@@ -47,7 +47,7 @@ def add_site(w: WireUI) -> str:
   # Create peer list
   peers = []
   for p in peer_names:
-    peers.append(get_new_peer_properties(p, ct))
+    peers.append(get_new_peer_properties(w, site_name, p, ct))
 
   try:
     w.add_site(
