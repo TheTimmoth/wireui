@@ -71,8 +71,8 @@ def _get_peer_section(name: str, peer: PeerItems, interface_peer_name: str, inte
   s += f"[Peer]\n"
   if peer["endpoint"] and name in interface_peer["outgoing_connected_peers"]:
     s += f"Endpoint = {peer['endpoint']}:{peer['port']}\n"
-    # TODO: PersistentKeepAlive per peer
-    s += "PersistentKeepAlive = 25\n"
+    if peer["persistent_keep_alive"]:
+      s += "PersistentKeepAlive = 25\n"
   s += f"PublicKey = " + peer["keys"]["pubkey"] + "\n"
 
   # Always the psk of the outgoing_connected_peers is used

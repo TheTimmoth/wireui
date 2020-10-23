@@ -6,6 +6,7 @@ from .shared import get_additional_allowed_ips
 from .shared import get_endpoint
 from .shared import get_new_peer_properties
 from .shared import get_port
+from .shared import get_persistent_keep_alive
 from .shared import get_redirect_all_traffic
 from .shared import yes_no_menu
 
@@ -95,6 +96,10 @@ def edit_peer_connections(w: WireUI, site_name: str):
         port = get_port()
       else:
         port = peer_old.port
+      if peer_old.persistent_keep_alive == -1:
+        persistent_keep_alive = get_persistent_keep_alive()
+      else:
+        persistent_keep_alive = peer_old.persistent_keep_alive
       if peer_old.additional_allowed_ips == []:
         additional_allowed_ips = get_additional_allowed_ips()
       else:
@@ -102,6 +107,7 @@ def edit_peer_connections(w: WireUI, site_name: str):
     else:
       endpoint = peer_old.endpoint
       port = peer_old.port
+      persistent_keep_alive = peer_old.persistent_keep_alive
       additional_allowed_ips = peer_old.additional_allowed_ips
 
     # If a peer now has outgoing connections, ask for redirect_all_traffic
@@ -121,6 +127,7 @@ def edit_peer_connections(w: WireUI, site_name: str):
         ct.get_ingoing_connected_peers(p),
         endpoint,
         port,
+        persistent_keep_alive,
         redirect_all_traffic,
     ))
 

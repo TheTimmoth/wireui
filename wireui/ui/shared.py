@@ -33,11 +33,12 @@ def get_new_peer_properties(peer_name: str, ct: ConnectionTable) -> Peer:
   if ct.get_ingoing_connected_peers(peer_name):
     endpoint = get_endpoint()
     port = get_port()
-
+    persistent_keep_alive = get_persistent_keep_alive()
     additional_allowed_ips = get_additional_allowed_ips()
   else:
     endpoint = ""
     port = 0
+    persistent_keep_alive = -1
     additional_allowed_ips = []
 
   # If peer has outgoing connections redirect_all_traffic is needed
@@ -46,7 +47,7 @@ def get_new_peer_properties(peer_name: str, ct: ConnectionTable) -> Peer:
   else:
     redirect_all_traffic = None
 
-  return Peer(peer_name, additional_allowed_ips, ct.get_outgoing_connected_peers(peer_name), ct.get_ingoing_connected_peers(peer_name), endpoint, port, redirect_all_traffic)
+  return Peer(peer_name, additional_allowed_ips, ct.get_outgoing_connected_peers(peer_name), ct.get_ingoing_connected_peers(peer_name), endpoint, port, persistent_keep_alive, redirect_all_traffic)
 
 
 # TODO: is correct messages
@@ -68,6 +69,13 @@ def get_port() -> int:
         print_error(0, "Error: The port should be between 0 and 65535")
         continue
     return port
+
+
+def get_persistent_keep_alive() -> int:
+  if yes_no_menu("Is the peer behind a NAT?"):
+    return 25
+  else:
+    return 0
 
 
 # TODO: is correct messages

@@ -42,6 +42,7 @@ class Peer(NamedTuple):
   ingoing_connected_peers: list
   endpoint: str
   port: int
+  persistent_keep_alive: int
   redirect_all_traffic: bool
 
 
@@ -87,6 +88,7 @@ class WireUI():
           "ingoing_connected_peers": p.ingoing_connected_peers,
           "endpoint": p.endpoint,
           "port": p.port,
+          "persistent_keep_alive": p.persistent_keep_alive,
           "redirect_all_traffic": p.redirect_all_traffic,
         })
       except PeerDoesExistError as e:
@@ -139,6 +141,7 @@ class WireUI():
         "ingoing_connected_peers": peer.ingoing_connected_peers,
         "endpoint": peer.endpoint,
         "port": peer.port,
+        "persistent_keep_alive": peer.persistent_keep_alive,
         "redirect_all_traffic": peer.redirect_all_traffic,
     })
 
@@ -158,6 +161,7 @@ class WireUI():
       self._sites[site_name]["peers"][peer_name]["ingoing_connected_peers"],
       self._sites[site_name]["peers"][peer_name]["endpoint"],
       self._sites[site_name]["peers"][peer_name]["port"],
+      self._sites[site_name]["peers"][peer_name]["persistent_keep_alive"],
       self._sites[site_name]["peers"][peer_name]["redirect_all_traffic"],
     )
 
@@ -177,6 +181,7 @@ class WireUI():
         "ingoing_connected_peers": peer.ingoing_connected_peers,
         "endpoint": peer.endpoint,
         "port": peer.port,
+        "persistent_keep_alive": peer.persistent_keep_alive,
         "redirect_all_traffic": peer.redirect_all_traffic,
     })
 
