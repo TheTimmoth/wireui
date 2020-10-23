@@ -31,6 +31,7 @@ from .typedefs import Sites
 
 class Site(NamedTuple):
   name: str
+  config_version: str
   ip_networks: str
   peers: list
 
@@ -39,6 +40,7 @@ class Peer(NamedTuple):
   name: str
   additional_allowed_ips: list
   outgoing_connected_peers: list
+  main_peer: str
   ingoing_connected_peers: list
   endpoint: str
   port: int
@@ -85,6 +87,7 @@ class WireUI():
           "keys": get_keys(),
           "additional_allowed_ips": p.additional_allowed_ips,
           "outgoing_connected_peers": p.outgoing_connected_peers,
+          "main_peer": p.main_peer,
           "ingoing_connected_peers": p.ingoing_connected_peers,
           "endpoint": p.endpoint,
           "port": p.port,
@@ -95,6 +98,7 @@ class WireUI():
         raise e
 
     self._sites[site.name] = SiteItems({
+        "config_version": site.config_version,
         "ip_networks": site.ip_networks,
         "peers": peers
     })
@@ -138,6 +142,7 @@ class WireUI():
         "keys": get_keys(),
         "additional_allowed_ips": peer.additional_allowed_ips,
         "outgoing_connected_peers": peer.outgoing_connected_peers,
+        "main_peer": peer.main_peer,
         "ingoing_connected_peers": peer.ingoing_connected_peers,
         "endpoint": peer.endpoint,
         "port": peer.port,
@@ -158,6 +163,7 @@ class WireUI():
       peer_name,
       self._sites[site_name]["peers"][peer_name]["additional_allowed_ips"],
       self._sites[site_name]["peers"][peer_name]["outgoing_connected_peers"],
+      self._sites[site_name]["peers"][peer_name]["main_peer"],
       self._sites[site_name]["peers"][peer_name]["ingoing_connected_peers"],
       self._sites[site_name]["peers"][peer_name]["endpoint"],
       self._sites[site_name]["peers"][peer_name]["port"],
@@ -178,6 +184,7 @@ class WireUI():
         "keys": self._sites[site_name]["peers"][peer.name]["keys"],
         "additional_allowed_ips": peer.additional_allowed_ips,
         "outgoing_connected_peers": peer.outgoing_connected_peers,
+        "main_peer": peer.main_peer,
         "ingoing_connected_peers": peer.ingoing_connected_peers,
         "endpoint": peer.endpoint,
         "port": peer.port,

@@ -47,7 +47,7 @@ def get_new_peer_properties(peer_name: str, ct: ConnectionTable) -> Peer:
   else:
     redirect_all_traffic = None
 
-  return Peer(peer_name, additional_allowed_ips, ct.get_outgoing_connected_peers(peer_name), ct.get_ingoing_connected_peers(peer_name), endpoint, port, persistent_keep_alive, redirect_all_traffic)
+  return Peer(peer_name, additional_allowed_ips, ct.get_outgoing_connected_peers(peer_name), ct.get_main_peer(peer_name), ct.get_ingoing_connected_peers(peer_name), endpoint, port, persistent_keep_alive, redirect_all_traffic)
 
 
 # TODO: is correct messages

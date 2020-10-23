@@ -51,14 +51,17 @@ class TestConnectionTable(unittest.TestCase):
     t = ConnectionTable( ["Alpha", "Beta", "Gamma", "Delta"])
 
     #Test initialization values
-    for i in range(3):
+    for i in range(4):
       for j in range(4):
         self.assertEqual(0, t.content[i][j])
+
+    for i in range(4):
+      self.assertEqual(None, t.content[i][4])
 
   def test_getter_and_setter(self):
     t = ConnectionTable( ["Alpha", "Beta", "Gamma", "Delta"])
 
-    r = [1, 2, 3, 4]
+    r = [1, 2, 3, 4, "Alpha"]
     for i in range(4):
       for j in range(4):
         self.assertEqual(0, t.getitem(i, j))
@@ -68,12 +71,12 @@ class TestConnectionTable(unittest.TestCase):
           t.setitem(i, j, 1)
           self.assertEqual(1, t.getitem(i, j))
       t.setrow(i, r)
-      for j in range(4):
+      for j in range(5):
         self.assertEqual(r[j], t.getitem(i, j))
 
   def test_str(self):
     t = ConnectionTable(["Alpha", "Ypsilon", "Beta", "Delta"])
-    s = "        Alpha Ypsilon Beta Delta\n  Alpha 0     0       0    0    \nYpsilon 0     0       0    0    \n   Beta 0     0       0    0    \n  Delta 0     0       0    0    "
+    s = "        Alpha Ypsilon Beta Delta main_peer\n  Alpha 0     0       0    0     None     \nYpsilon 0     0       0    0     None     \n   Beta 0     0       0    0     None     \n  Delta 0     0       0    0     None     "
     self.assertEqual(s, str(t))
 
   def test_repr(self):
@@ -83,38 +86,60 @@ class TestConnectionTable(unittest.TestCase):
 
   def test_update(self):
     t = ConnectionTable(["Alpha", "Ypsilon", "Beta", "Delta"])
-    s = "        Alpha Ypsilon Beta Delta\n  Alpha 0     0       0    0    \nYpsilon 0     0       0    0    \n   Beta 0     0       0    0    \n  Delta 0     0       0    0    "
+    s = "        Alpha Ypsilon Beta Delta main_peer\n  Alpha 0     0       0    0     None     \nYpsilon 0     0       0    0     None     \n   Beta 0     0       0    0     None     \n  Delta 0     0       0    0     None     "
     self.assertEqual(s, str(t))
 
-    s = "        Alpha Ypsilon Beta Delta\n  Alpha 0     2       3    4    \nYpsilon 5     0       7    8    \n   Beta 9     10      0    12   \n  Delta 13    14      15   0    "
+    s = "        Alpha Ypsilon Beta Delta main_peer\n  Alpha 0     0       0    0     None     \nYpsilon 1     0       1    1     Delta    \n   Beta 1     1       0    1     Delta    \n  Delta 1     1       1    0     Beta     "
     t.update(s)
     self.assertEqual(s, str(t))
 
     for i in range(t.n):
-      for j in range(t.m):
-        self.assertTrue(isinstance(t.getitem(i,j), int))
+      for j in range(t.n):
+        self.assertTrue(isinstance(t.getitem(i, j), int))
+      if i == 0:
+        self.assertTrue(t.getitem(i, t.m - 1) is None)
+      else:
+        self.assertTrue(isinstance(t.getitem(i, t.m - 1), str))
 
   def test_get_outgoing_connected_peers(self):
     t = ConnectionTable(["Alpha", "Ypsilon", "Beta", "Delta"])
-    s = "        Alpha Ypsilon Beta Delta\n  Alpha 0     1       0    1    \nYpsilon 0     0       0    0    \n   Beta 0     0       0    0    \n  Delta 0     0       0    0    "
+    s = "        Alpha Ypsilon Beta Delta main_peer\n  Alpha 0     1       1    1     Delta    \nYpsilon 1     0       1    1     Delta    \n   Beta 1     1       0    1     Delta    \n  Delta 1     1       1    0     Beta     "
     t.update(s)
 
     l = t.get_outgoing_connected_peers("Alpha")
-    self.assertEqual(["Ypsilon", "Delta"], l)
+    self.assertEqual(["Ypsilon", "Beta", "Delta"], l)
 
   def test_get_ingoing_connected_peers(self):
     t = ConnectionTable(["Alpha", "Ypsilon", "Beta", "Delta"])
-    s = "        Alpha Ypsilon Beta Delta\n  Alpha 0     1       0    1    \nYpsilon 0     0       0    0    \n   Beta 0     0       0    0    \n  Delta 0     0       0    0    "
+    s = "        Alpha Ypsilon Beta Delta main_peer\n  Alpha 0     1       1    1     Delta    \nYpsilon 1     0       1    1     Delta    \n   Beta 1     1       0    1     Delta    \n  Delta 1     1       1    0     Beta     "
     t.update(s)
 
+
     l = t.get_ingoing_connected_peers("Ypsilon")
-    self.assertEqual(["Alpha"], l)
-    l = t.get_ingoing_connected_peers("Delta")
-    self.assertEqual(["Alpha"], l)
+    self.assertEqual(["Alpha", "Beta", "Delta"], l)
+
+
+  def test_get_main_peer(self):
+    t = ConnectionTable(["Alpha", "Ypsilon", "Beta", "Delta"])
+    s = "        Alpha Ypsilon Beta Delta main_peer\n  Alpha 0     1       1    1     Delta    \nYpsilon 1     0       1    1     Delta    \n   Beta 1     1       0    1     Delta    \n  Delta 1     1       1    0     Beta     "
+    t.update(s)
+
+    self.assertEqual("Delta", t.get_main_peer("Alpha"))
+
+
 
   def test_error(self):
-    t = ConnectionTable( ["Alpha", "Beta", "Gamma", "Delta"])
+    t = ConnectionTable(["Alpha", "Ypsilon", "Beta", "Delta"])
     self.assertRaises(ValueError, t.setitem, 1, 1, 1)
+    self.assertRaises(ValueError, t.setitem, 1, 4, 1)
+
+
+    s = "        Alpha Ypsilon Beta Delta main_peer\n  Alpha 0     1       1    1     Delta    \nYpsilon 1     0       1    1     Delta    \n   Beta 1     1       0    1     Beta     \n  Delta 1     1       1    0     Beta     "
+    self.assertRaises(ValueError, t.update, s)
+
+
+    s = "        Alpha Ypsilon Beta Delta main_peer\n  Alpha 1     1       1    1     Delta    \nYpsilon 1     0       1    1     Delta    \n   Beta 1     1       0    1     Delta    \n  Delta 1     1       1    0     Beta     "
+    self.assertRaises(ValueError, t.update, s)
 
 
 if __name__ == "__main__":

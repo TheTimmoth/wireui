@@ -59,12 +59,13 @@ def edit_dict(d: JsonDict = JsonDict()) -> JsonDict:
   return d
 
 def edit_connection_table(ct: ConnectionTable) -> ConnectionTable:
+  s = ""
   valid = False
   while not valid:
     try:
-      ct.update(edit_string(str(ct)))
-    except ValueError:
-      pass
+      ct.update(edit_string(str(ct) + s))
+    except ValueError as e:
+      s = f"\n{e}"
     else:
       valid = True
   return ct

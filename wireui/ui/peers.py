@@ -76,6 +76,7 @@ def edit_peer_connections(w: WireUI, site_name: str):
     for j in range(ct.m):
       if ct.column_names[j] in peer.outgoing_connected_peers:
         ct.setitem(i, j, 1)
+    ct.setitem(i, len(peer_names), peer.main_peer)
 
   # Edit table
   input("Please edit the connection table. Press ENTER to continue...")
@@ -124,6 +125,7 @@ def edit_peer_connections(w: WireUI, site_name: str):
         peer_old.name,
         additional_allowed_ips,
         ct.get_outgoing_connected_peers(p),
+        ct.get_main_peer(p),
         ct.get_ingoing_connected_peers(p),
         endpoint,
         port,

@@ -53,7 +53,7 @@ def _get_interface_section(name: str, peer: PeerItems, peer_addresses: dict) -> 
 
   s = f"# {name}\n"
   s += "[Interface]\n"
-  s += _get_address_line(name, peer_addresses, bool(peer["ingoing_connected_peers"]))
+  s += _get_address_line(name, peer_addresses)
   if peer["ingoing_connected_peers"]:
     s += f"ListenPort = {peer['port']}\n"
     #TODO: firewall rules
@@ -114,7 +114,7 @@ def _get_addresses_for_peers(peers: tuple,
   return peer_addresses
 
 
-def _get_address_line(peer_name: str, peer_addresses: dict, main_peer: bool):
+def _get_address_line(peer_name: str, peer_addresses: dict):
   """ Create the Address line """
 
   address_line = "Address = "
@@ -131,7 +131,7 @@ def _get_allowed_ips_line(peer_name: str, peer: PeerItems, interface_peer: PeerI
 
   allowed_ips_line = "AllowedIPs = "
   for network in peer_addresses[peer_name].keys():
-    if redirect_all_traffic and peer_name in interface_peer["outgoing_connected_peers"]:
+    if redirect_all_traffic and peer_name in interface_peer["main_peer"]:
       if network.version == 4:
         allowed_ips_line += "0.0.0.0/0, "
       else:
