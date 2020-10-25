@@ -20,7 +20,9 @@ Release 0.1.0a3
   - [Library] [UI] (#5) Allow any peer to connect to multiple endpoints
   - [Library] [UI] (#6) Add custom "AllowedIPs" to a peer
   - [Library] [UI] (#7) Add option to set PersistentKeepAlive per peer
-  - [Library] [UI] (#8) Add connection matrix
+  - [Library] (#12) Add data integrity check of json files at startup
+  - [UI] (#8) Add connection matrix
+
 * Fixed:
   - [UI] Setting "verbosity" is now used at all
 * Changed:
