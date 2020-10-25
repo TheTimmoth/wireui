@@ -22,7 +22,6 @@ Release 0.1.0a3
   - [Library] [UI] (#7) Add option to set PersistentKeepAlive per peer
   - [Library] (#12) Add data integrity check of json files at startup
   - [UI] (#8) Add connection matrix
-
 * Fixed:
   - [UI] Setting "verbosity" is now used at all
 * Changed:
