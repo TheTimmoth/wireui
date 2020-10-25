@@ -11,6 +11,11 @@ from typing import Optional
 from .config import delete_config
 from .config import write_config
 
+from .integrity import check_settings_integrity
+from .integrity import check_site_integrity
+from .integrity import settings_latest_version
+from .integrity import site_latest_version
+
 from .io_ import read_file
 from .io_ import write_file
 
@@ -31,7 +36,6 @@ from .typedefs import Sites
 
 class Site(NamedTuple):
   name: str
-  config_version: str
   ip_networks: str
   peers: list
 
@@ -53,6 +57,7 @@ class WireUI():
 
   def __init__(self, settings_path: Optional[str] = None):
     default_settings = {
+        "file_version": settings_latest_version,
         "verbosity": 0,
         "sites_file_path": "./sites.json",
         "wg_config_path": "./wg",
@@ -68,6 +73,9 @@ class WireUI():
       self._settings = Settings(defaults=default_settings)
 
     self._sites = Sites(read_file(self._settings.get("sites_file_path")))
+
+    check_settings_integrity(self._settings)
+    check_site_integrity(self._sites)
 
   def get_sites(self) -> list:
     """ Get all existing sites """
@@ -98,7 +106,7 @@ class WireUI():
         raise e
 
     self._sites[site.name] = SiteItems({
-        "config_version": site.config_version,
+        "config_version": site_latest_version,
         "ip_networks": site.ip_networks,
         "peers": peers
     })

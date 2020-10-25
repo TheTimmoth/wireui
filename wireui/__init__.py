@@ -1,3 +1,4 @@
+from .library import DataIntegrityError
 from .library import PeerDoesExistError
 from .library import PeerDoesNotExistError
 from .library import SettingDoesNotExistError
@@ -10,6 +11,7 @@ from .library import WireUI
 from .ui import run_ui
 
 __all__ = [
+    "DataIntegrityError",
     "PeerDoesExistError",
     "PeerDoesNotExistError",
     "SettingDoesNotExistError",

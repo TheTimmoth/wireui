@@ -12,14 +12,10 @@ class KeyDoesExistError(KeyExistenceError):
   def __init__(self, key_name):
     super().__init__(f"{key_name} does already exist")
 
-  pass
-
 
 class KeyDoesNotExistError(KeyExistenceError):
   def __init__(self, key_name):
     super().__init__(f"{key_name} does not exist")
-
-  pass
 
 
 class PeerDoesExistError(KeyDoesExistError):
@@ -47,4 +43,8 @@ class SiteDoesNotExistError(KeyDoesNotExistError):
 
 
 class WireguardNotFoundError(Error):
+  pass
+
+
+class DataIntegrityError(Error):
   pass

@@ -10,6 +10,7 @@ from .io_ import write_file
 from .keys import get_keys
 
 from .typedefs import ConnectionTable
+from .typedefs import DataIntegrityError
 from .typedefs import JSONDecodeError
 from .typedefs import JsonDict
 from .typedefs import KeyDoesExistError
@@ -42,6 +43,7 @@ __all__ = [
     "write_config",
     "write_file",
     "ConnectionTable",
+    "DataIntegrityError",
     "JSONDecodeError",
     "JsonDict",
     "Keys",
