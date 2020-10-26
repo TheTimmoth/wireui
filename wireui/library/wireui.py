@@ -2,6 +2,8 @@
 # Get keys from wg Write wireguard config files
 # Author: Tim Schlottmann
 
+import ipaddress
+
 from os import path
 from typing import NamedTuple
 from typing import Optional
@@ -220,9 +222,7 @@ class WireUI():
     if peer_name not in self._sites[site_name]["peers"]:
       raise PeerDoesNotExistError(peer_name)
 
-    self._sites[site_name]["peers"][peer_name] = PeerItems({
-        "keys": get_keys()
-    })
+    self._sites[site_name]["peers"][peer_name]["keys"] = get_keys()
 
   def peer_exists(self, site_name: str, peer_name: str) -> bool:
     """ Check if a peer exists in a site """
@@ -240,8 +240,16 @@ class WireUI():
     return len(self._sites[site_name]["peers"])
 
 
-  def get_networks(self, site_name: str) -> list:
-    return self._sites[site_name]["ip_networks"]
+  def get_networks(self, site_name: str) -> tuple:
+    allow_ipv4 = False
+    allow_ipv6 = False
+    for n in self._sites[site_name]["ip_networks"]:
+      v = ipaddress.ip_network(n).version
+      if v == 4:
+        allow_ipv4 = True
+      elif v == 6:
+        allow_ipv6 = True
+    return allow_ipv4, allow_ipv6
 
   def create_wireguard_config(self, site_name: str) -> list:
     """ Write the wireguard config files """

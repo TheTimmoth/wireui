@@ -33,8 +33,9 @@ def list_peers(w: WireUI, site_name: str) -> int:
 
 def add_peer(w: WireUI, site_name: str):
   peer_name = _get_peer_name(w, site_name, should_exist=False)
+  allow_ipv4, allow_ipv6 = w.get_networks(site_name)
   try:
-    w.add_peer(site_name, get_new_peer_properties(w, site_name, peer_name, ConnectionTable([peer_name])))
+    w.add_peer(site_name, get_new_peer_properties(w, site_name, peer_name, ConnectionTable([peer_name]), allow_ipv4, allow_ipv6))
   except PeerDoesExistError:
     print_error(0, "Error: Peer does already exist. Do nothing...")
   else:
@@ -104,14 +105,7 @@ def edit_peer_connections(w: WireUI, site_name: str):
       else:
         persistent_keep_alive = peer_old.persistent_keep_alive
       if peer_old.additional_allowed_ips == []:
-        allow_ipv4 = False
-        allow_ipv6 = False
-        for n in w.get_networks(site_name):
-          v = ipaddress.ip_network(n).version
-          if v == 4:
-            allow_ipv4 = True
-          elif v == 6:
-            allow_ipv6 = True
+        allow_ipv4, allow_ipv6 = w.get_networks(site_name)
         additional_allowed_ips = get_additional_allowed_ips(allow_ipv4, allow_ipv6)
       else:
         additional_allowed_ips = []

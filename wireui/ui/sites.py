@@ -32,9 +32,11 @@ def add_site(w: WireUI) -> str:
   site_name = get_site_name(w, should_exist=False)
 
   ip = []
-  if yes_no_menu("Do you want to use IPv4?"):
+  allow_ipv4 = yes_no_menu("Do you want to use IPv4?")
+  if allow_ipv4:
     ip.append(_get_ip_network(4))
-  if yes_no_menu("Do you want to use IPv6?"):
+  allow_ipv6 = yes_no_menu("Do you want to use IPv6?")
+  if allow_ipv6:
     ip.append(_get_ip_network(6))
 
   peer_names = _get_peer_names()
@@ -47,7 +49,7 @@ def add_site(w: WireUI) -> str:
   # Create peer list
   peers = []
   for p in peer_names:
-    peers.append(get_new_peer_properties(w, site_name, p, ct))
+    peers.append(get_new_peer_properties(w, site_name, p, ct, allow_ipv4, allow_ipv6))
 
   try:
     w.add_site(

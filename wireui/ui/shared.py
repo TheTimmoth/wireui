@@ -26,7 +26,7 @@ def create_wireguard_config(w: WireUI, site_name: str):
   print_message(0, f"{len(created_files)} file(s) have been created.")
 
 
-def get_new_peer_properties(w: WireUI, site_name: str, peer_name: str, ct: ConnectionTable) -> Peer:
+def get_new_peer_properties(w: WireUI, site_name: str, peer_name: str, ct: ConnectionTable, allow_ipv4: bool, allow_ipv6: bool) -> Peer:
   print_message(0, f"Collecting properties of peer {peer_name}...")
 
   # If peer has ingoing connections endpoint and port is needed
@@ -34,14 +34,6 @@ def get_new_peer_properties(w: WireUI, site_name: str, peer_name: str, ct: Conne
     endpoint = get_endpoint()
     port = get_port()
     persistent_keep_alive = get_persistent_keep_alive()
-    allow_ipv4 = False
-    allow_ipv6 = False
-    for n in w.get_networks(site_name):
-      v = ipaddress.ip_network(n).version
-      if v == 4:
-        allow_ipv4 = True
-      elif v == 6:
-        allow_ipv6 = True
     additional_allowed_ips = get_additional_allowed_ips(allow_ipv4, allow_ipv6)
   else:
     endpoint = ""
