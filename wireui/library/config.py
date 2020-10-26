@@ -139,8 +139,8 @@ def _get_allowed_ips_line(peer_name: str, peer: PeerItems, interface_peer: PeerI
     else:
       allowed_ips_line += str(peer_addresses[peer_name][network]) + "/" + str(
           network.max_prefixlen) + ", "
-    for s in peer["additional_allowed_ips"]:
-      allowed_ips_line += s + ", "
+  for s in peer["additional_allowed_ips"]:
+    allowed_ips_line += s + ", "
 
 
   return allowed_ips_line[:-2] + "\n"

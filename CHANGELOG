@@ -26,15 +26,25 @@ Release 0.1.0a3
   - [UI] Setting "verbosity" was not used
 * Changed:
   - [UI] Existing site and peer names are shown more frequently (where it makes sense)
-  - Clarification of some variable names and descriptions
+  - [Library] [UI] Clarification of some variable names and descriptions
 * Known bugs and limitations:
   - interface is not stable and can change drastically in future releases
 
 Release 0.1.0a4
 * Fixed:
-  - Creation of a new site was impossible
-  - Integrity check of sites failed (integrity check looked for key "version" instead of "config_version")
-  - Integrity check was unaware of values with multiple allowed datatypes (e.g. "NoneType" and "bool")
-  - Recreation of the keys for a peer removed all other attributes from this peer
+  - [Library] Creation of a new site was impossible
+  - [Library] Integrity check of sites failed (integrity check looked for key "version" instead of "config_version")
+  - [Library] Integrity check was unaware of values with multiple allowed datatypes (e.g. "NoneType" and "bool")
+  - [Library] Recreation of the keys for a peer removed all other attributes from this peer
+* Known bugs and limitations:
+  - interface is not stable and can change drastically in future releases
+
+Release 0.1.0a5
+* Added:
+  -
+* Fixed:
+  - [Library] Additional AllowedIPs appeared multiple times in wireguard config files
+* Changed:
+  -
 * Known bugs and limitations:
   - interface is not stable and can change drastically in future releases
