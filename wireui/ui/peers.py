@@ -1,10 +1,14 @@
+import ipaddress
+
 from .console import print_error
 from .console import print_message
 
 from .shared import create_wireguard_config
+from .shared import get_additional_allowed_ips
 from .shared import get_endpoint
 from .shared import get_new_peer_properties
 from .shared import get_port
+from .shared import get_persistent_keep_alive
 from .shared import get_redirect_all_traffic
 from .shared import yes_no_menu
 
@@ -30,7 +34,7 @@ def list_peers(w: WireUI, site_name: str) -> int:
 def add_peer(w: WireUI, site_name: str):
   peer_name = _get_peer_name(w, site_name, should_exist=False)
   try:
-    w.add_peer(site_name, get_new_peer_properties(peer_name, ConnectionTable([peer_name])))
+    w.add_peer(site_name, get_new_peer_properties(w, site_name, peer_name, ConnectionTable([peer_name])))
   except PeerDoesExistError:
     print_error(0, "Error: Peer does already exist. Do nothing...")
   else:
@@ -69,11 +73,12 @@ def edit_peer_connections(w: WireUI, site_name: str):
   ct = ConnectionTable(peer_names)
 
   # Populate table with actual data
-  for i in range(ct.n):
+  for i in range(len(peer_names)):
     peer = w.get_peer(site_name, ct.row_names[i])
-    for j in range(ct.m):
+    for j in range(len(peer_names)):
       if ct.column_names[j] in peer.outgoing_connected_peers:
         ct.setitem(i, j, 1)
+    ct.setitem(i, len(peer_names), peer.main_peer)
 
   # Edit table
   input("Please edit the connection table. Press ENTER to continue...")
@@ -94,11 +99,26 @@ def edit_peer_connections(w: WireUI, site_name: str):
         port = get_port()
       else:
         port = peer_old.port
-      # TODO: if peer_old.additional_allowed_ips == []
-      additional_allowed_ips = []
+      if peer_old.persistent_keep_alive == -1:
+        persistent_keep_alive = get_persistent_keep_alive()
+      else:
+        persistent_keep_alive = peer_old.persistent_keep_alive
+      if peer_old.additional_allowed_ips == []:
+        allow_ipv4 = False
+        allow_ipv6 = False
+        for n in w.get_networks(site_name):
+          v = ipaddress.ip_network(n).version
+          if v == 4:
+            allow_ipv4 = True
+          elif v == 6:
+            allow_ipv6 = True
+        additional_allowed_ips = get_additional_allowed_ips(allow_ipv4, allow_ipv6)
+      else:
+        additional_allowed_ips = []
     else:
       endpoint = peer_old.endpoint
       port = peer_old.port
+      persistent_keep_alive = peer_old.persistent_keep_alive
       additional_allowed_ips = peer_old.additional_allowed_ips
 
     # If a peer now has outgoing connections, ask for redirect_all_traffic
@@ -115,9 +135,11 @@ def edit_peer_connections(w: WireUI, site_name: str):
         peer_old.name,
         additional_allowed_ips,
         ct.get_outgoing_connected_peers(p),
+        ct.get_main_peer(p),
         ct.get_ingoing_connected_peers(p),
         endpoint,
         port,
+        persistent_keep_alive,
         redirect_all_traffic,
     ))
 

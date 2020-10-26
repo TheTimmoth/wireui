@@ -11,6 +11,11 @@ from typing import Optional
 from .config import delete_config
 from .config import write_config
 
+from .integrity import check_settings_integrity
+from .integrity import check_site_integrity
+from .integrity import settings_latest_version
+from .integrity import site_latest_version
+
 from .io_ import read_file
 from .io_ import write_file
 
@@ -39,9 +44,11 @@ class Peer(NamedTuple):
   name: str
   additional_allowed_ips: list
   outgoing_connected_peers: list
+  main_peer: str
   ingoing_connected_peers: list
   endpoint: str
   port: int
+  persistent_keep_alive: int
   redirect_all_traffic: bool
 
 
@@ -50,6 +57,7 @@ class WireUI():
 
   def __init__(self, settings_path: Optional[str] = None):
     default_settings = {
+        "file_version": settings_latest_version,
         "verbosity": 0,
         "sites_file_path": "./sites.json",
         "wg_config_path": "./wg",
@@ -65,6 +73,9 @@ class WireUI():
       self._settings = Settings(defaults=default_settings)
 
     self._sites = Sites(read_file(self._settings.get("sites_file_path")))
+
+    check_settings_integrity(self._settings)
+    check_site_integrity(self._sites)
 
   def get_sites(self) -> list:
     """ Get all existing sites """
@@ -84,15 +95,18 @@ class WireUI():
           "keys": get_keys(),
           "additional_allowed_ips": p.additional_allowed_ips,
           "outgoing_connected_peers": p.outgoing_connected_peers,
+          "main_peer": p.main_peer,
           "ingoing_connected_peers": p.ingoing_connected_peers,
           "endpoint": p.endpoint,
           "port": p.port,
+          "persistent_keep_alive": p.persistent_keep_alive,
           "redirect_all_traffic": p.redirect_all_traffic,
         })
       except PeerDoesExistError as e:
         raise e
 
     self._sites[site.name] = SiteItems({
+        "config_version": site_latest_version,
         "ip_networks": site.ip_networks,
         "peers": peers
     })
@@ -136,9 +150,11 @@ class WireUI():
         "keys": get_keys(),
         "additional_allowed_ips": peer.additional_allowed_ips,
         "outgoing_connected_peers": peer.outgoing_connected_peers,
+        "main_peer": peer.main_peer,
         "ingoing_connected_peers": peer.ingoing_connected_peers,
         "endpoint": peer.endpoint,
         "port": peer.port,
+        "persistent_keep_alive": peer.persistent_keep_alive,
         "redirect_all_traffic": peer.redirect_all_traffic,
     })
 
@@ -155,9 +171,11 @@ class WireUI():
       peer_name,
       self._sites[site_name]["peers"][peer_name]["additional_allowed_ips"],
       self._sites[site_name]["peers"][peer_name]["outgoing_connected_peers"],
+      self._sites[site_name]["peers"][peer_name]["main_peer"],
       self._sites[site_name]["peers"][peer_name]["ingoing_connected_peers"],
       self._sites[site_name]["peers"][peer_name]["endpoint"],
       self._sites[site_name]["peers"][peer_name]["port"],
+      self._sites[site_name]["peers"][peer_name]["persistent_keep_alive"],
       self._sites[site_name]["peers"][peer_name]["redirect_all_traffic"],
     )
 
@@ -174,9 +192,11 @@ class WireUI():
         "keys": self._sites[site_name]["peers"][peer.name]["keys"],
         "additional_allowed_ips": peer.additional_allowed_ips,
         "outgoing_connected_peers": peer.outgoing_connected_peers,
+        "main_peer": peer.main_peer,
         "ingoing_connected_peers": peer.ingoing_connected_peers,
         "endpoint": peer.endpoint,
         "port": peer.port,
+        "persistent_keep_alive": peer.persistent_keep_alive,
         "redirect_all_traffic": peer.redirect_all_traffic,
     })
 
@@ -218,6 +238,10 @@ class WireUI():
     if site_name not in self._sites:
       raise SiteDoesNotExistError(site_name)
     return len(self._sites[site_name]["peers"])
+
+
+  def get_networks(self, site_name: str) -> list:
+    return self._sites[site_name]["ip_networks"]
 
   def create_wireguard_config(self, site_name: str) -> list:
     """ Write the wireguard config files """

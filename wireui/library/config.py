@@ -53,7 +53,7 @@ def _get_interface_section(name: str, peer: PeerItems, peer_addresses: dict) -> 
 
   s = f"# {name}\n"
   s += "[Interface]\n"
-  s += _get_address_line(name, peer_addresses, bool(peer["ingoing_connected_peers"]))
+  s += _get_address_line(name, peer_addresses)
   if peer["ingoing_connected_peers"]:
     s += f"ListenPort = {peer['port']}\n"
     #TODO: firewall rules
@@ -71,8 +71,8 @@ def _get_peer_section(name: str, peer: PeerItems, interface_peer_name: str, inte
   s += f"[Peer]\n"
   if peer["endpoint"] and name in interface_peer["outgoing_connected_peers"]:
     s += f"Endpoint = {peer['endpoint']}:{peer['port']}\n"
-    # TODO: PersistentKeepAlive per peer
-    s += "PersistentKeepAlive = 25\n"
+    if peer["persistent_keep_alive"]:
+      s += "PersistentKeepAlive = 25\n"
   s += f"PublicKey = " + peer["keys"]["pubkey"] + "\n"
 
   # Always the psk of the outgoing_connected_peers is used
@@ -91,6 +91,8 @@ def _get_peer_section(name: str, peer: PeerItems, interface_peer_name: str, inte
     s += f"PresharedKey = " + interface_peer["keys"]["psk"] + "\n"
   s += _get_allowed_ips_line(
       peer_name=name,
+      peer=peer,
+      interface_peer=interface_peer,
       peer_addresses=peer_addresses,
       redirect_all_traffic=interface_peer["redirect_all_traffic"])
   s += "\n"
@@ -112,7 +114,7 @@ def _get_addresses_for_peers(peers: tuple,
   return peer_addresses
 
 
-def _get_address_line(peer_name: str, peer_addresses: dict, main_peer: bool):
+def _get_address_line(peer_name: str, peer_addresses: dict):
   """ Create the Address line """
 
   address_line = "Address = "
@@ -123,13 +125,13 @@ def _get_address_line(peer_name: str, peer_addresses: dict, main_peer: bool):
   return address_line[:-2] + "\n"
 
 
-def _get_allowed_ips_line(peer_name: str, peer_addresses: dict,
+def _get_allowed_ips_line(peer_name: str, peer: PeerItems, interface_peer: PeerItems, peer_addresses: dict,
                           redirect_all_traffic: bool):
   """ Create the AllowedIPs line """
 
   allowed_ips_line = "AllowedIPs = "
   for network in peer_addresses[peer_name].keys():
-    if redirect_all_traffic:
+    if redirect_all_traffic and peer_name in interface_peer["main_peer"]:
       if network.version == 4:
         allowed_ips_line += "0.0.0.0/0, "
       else:
@@ -137,5 +139,8 @@ def _get_allowed_ips_line(peer_name: str, peer_addresses: dict,
     else:
       allowed_ips_line += str(peer_addresses[peer_name][network]) + "/" + str(
           network.max_prefixlen) + ", "
+    for s in peer["additional_allowed_ips"]:
+      allowed_ips_line += s + ", "
+
 
   return allowed_ips_line[:-2] + "\n"

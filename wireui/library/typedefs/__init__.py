@@ -1,6 +1,7 @@
 from .dicts import JSONDecodeError
 from .dicts import JsonDict
 
+from .exceptions import DataIntegrityError
 from .exceptions import KeyDoesExistError
 from .exceptions import KeyDoesNotExistError
 from .exceptions import PeerDoesExistError
@@ -24,6 +25,7 @@ from .tables import ConnectionTable
 
 __all__ = [
     "ConnectionTable",
+    "DataIntegrityError",
     "JSONDecodeError",
     "JsonDict",
     "Keys",

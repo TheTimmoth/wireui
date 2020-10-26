@@ -20,9 +20,10 @@ from ..library import WireUI
 
 def start_message():
   print_message(0, "wireui")
-  print_message(0, "A tool for creating and managing wireguard configs")
+  print_message(0, "Tool for creating and managing wireguard configs")
   print_message(0, "Version 0.1.0a")
   print_message(0, "(C) 2020 Tim Schlottmann")
+  print_message(0, "")
 
 
 def entrypoint_menu(w: WireUI):
