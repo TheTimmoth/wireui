@@ -56,7 +56,7 @@ class TestConnectionTable(unittest.TestCase):
         self.assertEqual(0, t.content[i][j])
 
     for i in range(4):
-      self.assertEqual(None, t.content[i][4])
+      self.assertEqual("None", t.content[i][4])
 
   def test_getter_and_setter(self):
     t = ConnectionTable( ["Alpha", "Beta", "Gamma", "Delta"])
@@ -97,7 +97,7 @@ class TestConnectionTable(unittest.TestCase):
       for j in range(t.n):
         self.assertTrue(isinstance(t.getitem(i, j), int))
       if i == 0:
-        self.assertTrue(t.getitem(i, t.m - 1) is None)
+        self.assertTrue(t.getitem(i, t.m - 1) == "None")
       else:
         self.assertTrue(isinstance(t.getitem(i, t.m - 1), str))
 
