@@ -67,6 +67,7 @@ def _get_interface_section(name: str, peer: PeerItems,
         "ipv6"]:
       s += f"DNS = 1.1.1.1, 8.8.8.8\n"
   s += f"PrivateKey = " + peer["keys"]["privkey"] + "\n"
+
   post_up = ""
   post_down = ""
   if peer["ipv6_routing_fix"]:
@@ -77,9 +78,11 @@ def _get_interface_section(name: str, peer: PeerItems,
     post_down += "ip -6 rule delete table 501;"
     post_up += " "
     post_down += " "
-  if peer["post_up"]:
+  post_up += peer["post_up"]
+  post_down += peer["post_down"]
+  if post_up:
     s += f"PostUp = {post_up}{peer['post_up']}\n"
-  if peer["post_down"]:
+  if post_down:
     s += f"PostDown = {post_down}{peer['post_down']}\n"
   s += "\n"
   return s
@@ -158,9 +161,9 @@ def _get_allowed_ips_line(peer_name: str, peer: PeerItems,
         "main_peer"] and network.version == 4 and interface_peer[
           "redirect_all_traffic"]["ipv4"]:
       allowed_ips_line += "0.0.0.0/0, "
-    elif peer_name in interface_peer[
-        "main_peer"] and network.version == 6 and interface_peer[
-          "redirect_all_traffic"]["ipv6"]:
+    elif peer_name in interface_peer["main_peer"] and network.version == 6 and (
+        interface_peer["redirect_all_traffic"]["ipv6"]
+        or interface_peer["ipv6_routing_fix"]):
       allowed_ips_line += "::/0, "
     else:
       allowed_ips_line += str(peer_addresses[peer_name][network]) + "/" + str(
