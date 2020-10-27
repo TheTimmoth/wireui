@@ -9,6 +9,9 @@ from typing import Dict
 Keys = dict
 
 # TODO: Evaluate TypedDict when python3.8 is available
+RedirectAllTraffic = dict
+
+# TODO: Evaluate TypedDict when python3.8 is available
 PeerItems = dict
 
 

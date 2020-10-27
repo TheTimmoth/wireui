@@ -5,6 +5,7 @@ from .console import print_error, print_message
 from ..library import edit_string
 from ..library import ConnectionTable
 from ..library import Peer
+from ..library import RedirectAllTraffic
 from ..library import WireUI
 
 def yes_no_menu(string) -> bool:
@@ -131,8 +132,8 @@ def get_post_down() -> str:
 
 
 # TODO: is correct messages
-def get_redirect_all_traffic() -> bool:
-  return yes_no_menu("Please enter if all traffic from the peer should be redirected:")
+def get_redirect_all_traffic() -> RedirectAllTraffic:
+  return RedirectAllTraffic(yes_no_menu("Please enter if all IPv4 traffic from this peer should be redirected:"), yes_no_menu("Please enter if all IPv6 traffic from this peer should be redirected:"))
 
 def get_input(msg: str) -> str:
   s = input(msg + ": ")

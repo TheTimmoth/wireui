@@ -28,6 +28,7 @@ from .typedefs import PeerItems
 from .typedefs import PeerDoesExistError
 from .typedefs import PeerDoesNotExistError
 from .typedefs import Peers
+from .typedefs import RedirectAllTraffic as RedirectAllTraffic_
 from .typedefs import Settings
 from .typedefs import SettingDoesNotExistError
 from .typedefs import SiteItems
@@ -41,6 +42,9 @@ class Site(NamedTuple):
   ip_networks: str
   peers: list
 
+class RedirectAllTraffic(NamedTuple):
+  ipv4: bool
+  ipv6: bool
 
 class Peer(NamedTuple):
   name: str
@@ -51,7 +55,7 @@ class Peer(NamedTuple):
   endpoint: str
   port: int
   persistent_keep_alive: int
-  redirect_all_traffic: bool
+  redirect_all_traffic: RedirectAllTraffic
   post_up: str
   post_down: str
 
@@ -94,6 +98,12 @@ class WireUI():
 
     peers = Peers()
     for p in site.peers:
+
+      if p.redirect_all_traffic:
+        redirect_all_traffic = RedirectAllTraffic_({"ipv4": p.redirect_all_traffic.ipv4, "ipv6": p.redirect_all_traffic.ipv6})
+      else:
+        redirect_all_traffic = None
+
       try:
         peers[p.name] = PeerItems({
           "keys": get_keys(),
@@ -104,7 +114,7 @@ class WireUI():
           "endpoint": p.endpoint,
           "port": p.port,
           "persistent_keep_alive": p.persistent_keep_alive,
-          "redirect_all_traffic": p.redirect_all_traffic,
+          "redirect_all_traffic": redirect_all_traffic,
           "post_up": p.post_up,
           "post_down": p.post_down,
         })
@@ -152,6 +162,11 @@ class WireUI():
     if peer.name in self._sites[site_name]["peers"]:
       raise PeerDoesExistError(peer.name)
 
+    if peer.redirect_all_traffic:
+      redirect_all_traffic = RedirectAllTraffic_({"ipv4": peer.redirect_all_traffic.ipv4, "ipv6": peer.redirect_all_traffic.ipv6})
+    else:
+      redirect_all_traffic = None
+
     self._sites[site_name]["peers"][peer.name] = PeerItems({
         "keys": get_keys(),
         "additional_allowed_ips": peer.additional_allowed_ips,
@@ -161,7 +176,7 @@ class WireUI():
         "endpoint": peer.endpoint,
         "port": peer.port,
         "persistent_keep_alive": peer.persistent_keep_alive,
-        "redirect_all_traffic": peer.redirect_all_traffic,
+        "redirect_all_traffic": redirect_all_traffic,
         "post_up": peer.post_up,
         "post_down": peer.post_down,
     })
@@ -175,6 +190,11 @@ class WireUI():
     if peer_name not in self._sites[site_name]["peers"]:
       raise PeerDoesNotExistError(peer_name)
 
+    if self._sites[site_name]["peers"][peer_name]["redirect_all_traffic"]:
+      redirect_all_traffic = RedirectAllTraffic(self._sites[site_name]["peers"][peer_name]["redirect_all_traffic"]["ipv4"], self._sites[site_name]["peers"][peer_name]["redirect_all_traffic"]["ipv6"])
+    else:
+      redirect_all_traffic = None
+
     return Peer(
       peer_name,
       self._sites[site_name]["peers"][peer_name]["additional_allowed_ips"],
@@ -184,7 +204,7 @@ class WireUI():
       self._sites[site_name]["peers"][peer_name]["endpoint"],
       self._sites[site_name]["peers"][peer_name]["port"],
       self._sites[site_name]["peers"][peer_name]["persistent_keep_alive"],
-      self._sites[site_name]["peers"][peer_name]["redirect_all_traffic"],
+      redirect_all_traffic,
       self._sites[site_name]["peers"][peer_name]["post_up"],
       self._sites[site_name]["peers"][peer_name]["post_down"],
     )
@@ -198,6 +218,11 @@ class WireUI():
     if peer.name not in self._sites[site_name]["peers"]:
       raise PeerDoesNotExistError(peer.name)
 
+    if peer.redirect_all_traffic:
+      redirect_all_traffic = RedirectAllTraffic_({"ipv4": peer.redirect_all_traffic.ipv4, "ipv6": peer.redirect_all_traffic.ipv6})
+    else:
+      redirect_all_traffic = None
+
     self._sites[site_name]["peers"][peer.name] = PeerItems({
         "keys": self._sites[site_name]["peers"][peer.name]["keys"],
         "additional_allowed_ips": peer.additional_allowed_ips,
@@ -207,7 +232,7 @@ class WireUI():
         "endpoint": peer.endpoint,
         "port": peer.port,
         "persistent_keep_alive": peer.persistent_keep_alive,
-        "redirect_all_traffic": peer.redirect_all_traffic,
+        "redirect_all_traffic": redirect_all_traffic,
         "post_up": peer.post_up,
         "post_down": peer.post_down,
     })

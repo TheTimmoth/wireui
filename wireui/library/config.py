@@ -57,9 +57,9 @@ def _get_interface_section(name: str, peer: PeerItems, peer_addresses: dict) -> 
   if peer["ingoing_connected_peers"]:
     s += f"ListenPort = {peer['port']}\n"
   # TODO: firewall rules
-  # TODO: redirect_all_traffic per network: disable this line
   if peer["redirect_all_traffic"]:
-    s += f"DNS = 1.1.1.1, 8.8.8.8\n"
+    if peer["redirect_all_traffic"]["ipv4"] and peer["redirect_all_traffic"]["ipv6"]:
+      s += f"DNS = 1.1.1.1, 8.8.8.8\n"
   s += f"PrivateKey = " + peer["keys"]["privkey"] + "\n"
   if peer['post_up']:
     s += f"PostUp = {peer['post_up']}\n"
@@ -98,8 +98,7 @@ def _get_peer_section(name: str, peer: PeerItems, interface_peer_name: str, inte
       peer_name=name,
       peer=peer,
       interface_peer=interface_peer,
-      peer_addresses=peer_addresses,
-      redirect_all_traffic=interface_peer["redirect_all_traffic"])
+      peer_addresses=peer_addresses,)
   s += "\n"
   return s
 
@@ -130,20 +129,18 @@ def _get_address_line(peer_name: str, peer_addresses: dict):
   return address_line[:-2] + "\n"
 
 
-def _get_allowed_ips_line(peer_name: str, peer: PeerItems, interface_peer: PeerItems, peer_addresses: dict,
-                          redirect_all_traffic: bool):
+def _get_allowed_ips_line(peer_name: str, peer: PeerItems, interface_peer: PeerItems, peer_addresses: dict):
   """ Create the AllowedIPs line """
 
   allowed_ips_line = "AllowedIPs = "
   for network in peer_addresses[peer_name].keys():
-    if redirect_all_traffic and peer_name in interface_peer["main_peer"]:
-      if network.version == 4:
-        allowed_ips_line += "0.0.0.0/0, "
-      else:
-        allowed_ips_line += "::/0, "
+    if peer_name in interface_peer["main_peer"] and network.version == 4 and interface_peer["redirect_all_traffic"]["ipv4"]:
+      allowed_ips_line += "0.0.0.0/0, "
+    elif peer_name in interface_peer["main_peer"] and network.version == 6 and interface_peer["redirect_all_traffic"]["ipv6"]:
+      allowed_ips_line += "::/0, "
     else:
       allowed_ips_line += str(peer_addresses[peer_name][network]) + "/" + str(
-          network.max_prefixlen) + ", "
+        network.max_prefixlen) + ", "
   for s in peer["additional_allowed_ips"]:
     allowed_ips_line += s + ", "
 

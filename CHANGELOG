@@ -42,6 +42,8 @@ Release 0.1.0a4
 Release 0.1.0a5
 * Added:
   - [Library] [UI] (#13) Add PostUp and PostDown for peers
+  - [Library] [UI] (#14) Add individual redirection of traffic for IPv4 or IPv6
+  - [Library] Automatic update of old sites.json and settings.json config files
 * Fixed:
   - [Library] Additional AllowedIPs appeared multiple times in wireguard config files
 * Changed:

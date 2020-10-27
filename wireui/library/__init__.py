@@ -19,18 +19,17 @@ from .typedefs import Keys
 from .typedefs import PeerDoesExistError
 from .typedefs import PeerDoesNotExistError
 from .typedefs import PeerItems
-from .typedefs import Peers
 from .typedefs import SettingDoesExistError
 from .typedefs import SettingDoesNotExistError
 from .typedefs import Settings
 from .typedefs import SiteDoesExistError
 from .typedefs import SiteDoesNotExistError
 from .typedefs import SiteItems
-from .typedefs import Sites
 from .typedefs import WireguardNotFoundError
 
-from .wireui import Site
 from .wireui import Peer
+from .wireui import RedirectAllTraffic
+from .wireui import Site
 from .wireui import WireUI
 
 __all__ = [
@@ -53,7 +52,7 @@ __all__ = [
     "PeerDoesExistError",
     "PeerDoesNotExistError",
     "PeerItems",
-    "Peers",
+    "RedirectAllTraffic",
     "Settings",
     "SettingDoesExistError",
     "SettingDoesNotExistError",
@@ -61,7 +60,6 @@ __all__ = [
     "SiteDoesExistError",
     "SiteDoesNotExistError",
     "SiteItems",
-    "Sites",
     "WireguardNotFoundError",
     "WireUI",
 ]

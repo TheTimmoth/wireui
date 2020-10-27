@@ -7,6 +7,7 @@ import ipaddress
 from .typedefs import DataIntegrityError
 from .typedefs import PeerItems
 from .typedefs import Peers
+from .typedefs import RedirectAllTraffic
 from .typedefs import Settings
 from .typedefs import SiteItems
 from .typedefs import Sites
@@ -41,9 +42,6 @@ def check_site_integrity(sites: Sites) -> Sites:
     if version_dict[sites[s]["config_version"]] < version_dict[site_latest_version]:
       # Update routines for config_version 0.1.0
       if sites[s]["config_version"] == "0.1.0":
-        for p in sites[s]["peers"]:
-          sites[s]["peers"][p]["post_up"] = ""
-          sites[s]["peers"][p]["post_down"] = ""
         sites[s]["config_version"] = "0.1.1"
 
     # Newer version -> Error
@@ -74,14 +72,21 @@ def check_site_integrity(sites: Sites) -> Sites:
 
   return sites
 
-def check_peer_integrity(peers: Peers, site_name: str, ipv4_network: bool, ipv6_network: bool, version: str) -> Peers:
+def check_peer_integrity(peers: Peers, site_name: str, ipv4_network: bool, ipv6_network: bool, version_old: str) -> Peers:
   for p in peers:
     # Update routines for old versions
-    if version_dict[version] < version_dict[site_latest_version]:
+    if version_dict[version_old] < version_dict[site_latest_version]:
       # Update routines for config_version 0.1.0
+      version = version_old
       if version == "0.1.0":
         peers[p]["post_up"] = ""
         peers[p]["post_down"] = ""
+
+        _check_key(peers[p], "redirect_all_traffic", "peer", f"{p} (site \"{site_name}\")", [bool, None], "bool or null")
+        if peers[p]["redirect_all_traffic"] == True:
+          peers[p]["redirect_all_traffic"] = RedirectAllTraffic({"ipv4": True, "ipv6": True})
+        elif peers[p]["redirect_all_traffic"] == False:
+          peers[p]["redirect_all_traffic"] = RedirectAllTraffic({"ipv4": False, "ipv6": False})
         version = "0.1.1"
 
     # Flags
@@ -129,7 +134,10 @@ def check_peer_integrity(peers: Peers, site_name: str, ipv4_network: bool, ipv6_
     _check_key(peers[p], "port", "peer", f"{p} (site \"{site_name}\")", [int], "int")
 
     # Check redirect_all_traffic
-    _check_key(peers[p], "redirect_all_traffic", "peer", f"{p} (site \"{site_name}\")", [bool, None], "bool or null")
+    _check_key(peers[p], "redirect_all_traffic", "peer", f"{p} (site \"{site_name}\")", [dict, None], "dict or null")
+    if peers[p]["redirect_all_traffic"]:
+      _check_key(peers[p]["redirect_all_traffic"], "ipv4", "key", f"ipv4 in \"redirect_all_traffic\" (peer {p} from site \"{site_name}\")", [bool], "bool")
+      _check_key(peers[p]["redirect_all_traffic"], "ipv6", "key", f"ipv6 in \"redirect_all_traffic\" (peer {p} from site \"{site_name}\")", [bool], "bool")
 
     # Check post_up and post_down
     _check_key(peers[p], "post_up", "peer", f"{p} (site \"{site_name}\")", [str], "str")

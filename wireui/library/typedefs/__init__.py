@@ -15,6 +15,7 @@ from .exceptions import WireguardNotFoundError
 from .peers import Keys
 from .peers import PeerItems
 from .peers import Peers
+from .peers import RedirectAllTraffic
 
 from .settings import Settings
 
@@ -35,6 +36,7 @@ __all__ = [
     "PeerDoesExistError",
     "PeerDoesNotExistError",
     "Peers",
+    "RedirectAllTraffic",
     "SettingDoesExistError",
     "SettingDoesNotExistError",
     "Settings",
