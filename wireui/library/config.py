@@ -56,10 +56,15 @@ def _get_interface_section(name: str, peer: PeerItems, peer_addresses: dict) -> 
   s += _get_address_line(name, peer_addresses)
   if peer["ingoing_connected_peers"]:
     s += f"ListenPort = {peer['port']}\n"
-    #TODO: firewall rules
+  # TODO: firewall rules
+  # TODO: redirect_all_traffic per network: disable this line
   if peer["redirect_all_traffic"]:
     s += f"DNS = 1.1.1.1, 8.8.8.8\n"
   s += f"PrivateKey = " + peer["keys"]["privkey"] + "\n"
+  if peer['post_up']:
+    s += f"PostUp = {peer['post_up']}\n"
+  if peer['post_down']:
+    s += f"PostDown = {peer['post_down']}\n"
   s += "\n"
   return s
 

@@ -41,7 +41,7 @@ Release 0.1.0a4
 
 Release 0.1.0a5
 * Added:
-  -
+  - [Library] [UI] (#13) Add PostUp and PostDown for peers
 * Fixed:
   - [Library] Additional AllowedIPs appeared multiple times in wireguard config files
 * Changed:

@@ -135,6 +135,8 @@ def edit_peer_connections(w: WireUI, site_name: str):
         port,
         persistent_keep_alive,
         redirect_all_traffic,
+        peer_old.post_up,
+        peer_old.post_down,
     ))
 
   create_wireguard_config(w, site_name)

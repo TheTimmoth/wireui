@@ -2,6 +2,7 @@ import ipaddress
 
 from .console import print_error, print_message
 
+from ..library import edit_string
 from ..library import ConnectionTable
 from ..library import Peer
 from ..library import WireUI
@@ -47,7 +48,13 @@ def get_new_peer_properties(w: WireUI, site_name: str, peer_name: str, ct: Conne
   else:
     redirect_all_traffic = None
 
-  return Peer(peer_name, additional_allowed_ips, ct.get_outgoing_connected_peers(peer_name), ct.get_main_peer(peer_name), ct.get_ingoing_connected_peers(peer_name), endpoint, port, persistent_keep_alive, redirect_all_traffic)
+  #Get post up and down
+  post_up = get_post_up()
+  post_down = get_post_down()
+
+  print_message(0, "The data can be changes in the file \"sites.json\"")
+
+  return Peer(peer_name, additional_allowed_ips, ct.get_outgoing_connected_peers(peer_name), ct.get_main_peer(peer_name), ct.get_ingoing_connected_peers(peer_name), endpoint, port, persistent_keep_alive, redirect_all_traffic, post_up, post_down)
 
 
 # TODO: is correct messages
@@ -107,6 +114,34 @@ def get_additional_allowed_ips(allow_ipv4: bool, allow_ipv6: bool) -> list:
   return l
 
 
+def get_post_up() -> str:
+  post_up = ""
+  while True:
+    if yes_no_menu("Do you want to add a PostUp command?"):
+      post_up = get_input("Please enter the PostUp command")
+    break
+  return post_up
+
+
+def get_post_down() -> str:
+  post_down = ""
+  if yes_no_menu("Do you want to add a PostDown command?"):
+      post_down = get_input("Please enter the PostDown command")
+  return post_down
+
+
 # TODO: is correct messages
 def get_redirect_all_traffic() -> bool:
   return yes_no_menu("Please enter if all traffic from the peer should be redirected:")
+
+def get_input(msg: str) -> str:
+  s = input(msg + ": ")
+  while True:
+    print_message(0, f"Detected the following:\n{s}")
+    if yes_no_menu("Is this correct?"):
+      break
+    else:
+      s = edit_string(s)
+      if s:
+        s = s[:-1]
+  return s

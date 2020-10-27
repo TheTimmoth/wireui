@@ -52,6 +52,8 @@ class Peer(NamedTuple):
   port: int
   persistent_keep_alive: int
   redirect_all_traffic: bool
+  post_up: str
+  post_down: str
 
 
 class WireUI():
@@ -103,6 +105,8 @@ class WireUI():
           "port": p.port,
           "persistent_keep_alive": p.persistent_keep_alive,
           "redirect_all_traffic": p.redirect_all_traffic,
+          "post_up": p.post_up,
+          "post_down": p.post_down,
         })
       except PeerDoesExistError as e:
         raise e
@@ -158,6 +162,8 @@ class WireUI():
         "port": peer.port,
         "persistent_keep_alive": peer.persistent_keep_alive,
         "redirect_all_traffic": peer.redirect_all_traffic,
+        "post_up": peer.post_up,
+        "post_down": peer.post_down,
     })
 
   def get_peer(self, site_name: str, peer_name: str) -> Peer:
@@ -179,6 +185,8 @@ class WireUI():
       self._sites[site_name]["peers"][peer_name]["port"],
       self._sites[site_name]["peers"][peer_name]["persistent_keep_alive"],
       self._sites[site_name]["peers"][peer_name]["redirect_all_traffic"],
+      self._sites[site_name]["peers"][peer_name]["post_up"],
+      self._sites[site_name]["peers"][peer_name]["post_down"],
     )
 
   def set_peer(self, site_name: str, peer: Peer):
@@ -200,6 +208,8 @@ class WireUI():
         "port": peer.port,
         "persistent_keep_alive": peer.persistent_keep_alive,
         "redirect_all_traffic": peer.redirect_all_traffic,
+        "post_up": peer.post_up,
+        "post_down": peer.post_down,
     })
 
   def delete_peer(self, site_name: str, peer_name: str):
