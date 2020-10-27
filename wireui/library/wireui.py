@@ -42,9 +42,11 @@ class Site(NamedTuple):
   ip_networks: str
   peers: list
 
+
 class RedirectAllTraffic(NamedTuple):
   ipv4: bool
   ipv6: bool
+
 
 class Peer(NamedTuple):
   name: str
@@ -62,14 +64,13 @@ class Peer(NamedTuple):
 
 class WireUI():
   """ Class for managing wireguard config files """
-
   def __init__(self, settings_path: Optional[str] = None):
     default_settings = {
-        "file_version": settings_latest_version,
-        "verbosity": 0,
-        "sites_file_path": "./sites.json",
-        "wg_config_path": "./wg",
-        "editor": "editor",
+      "file_version": settings_latest_version,
+      "verbosity": 0,
+      "sites_file_path": "./sites.json",
+      "wg_config_path": "./wg",
+      "editor": "editor",
     }
     if settings_path:
       self.settings_path = settings_path
@@ -100,7 +101,12 @@ class WireUI():
     for p in site.peers:
 
       if p.redirect_all_traffic:
-        redirect_all_traffic = RedirectAllTraffic_({"ipv4": p.redirect_all_traffic.ipv4, "ipv6": p.redirect_all_traffic.ipv6})
+        redirect_all_traffic = RedirectAllTraffic_({
+          "ipv4":
+          p.redirect_all_traffic.ipv4,
+          "ipv6":
+          p.redirect_all_traffic.ipv6
+        })
       else:
         redirect_all_traffic = None
 
@@ -122,9 +128,9 @@ class WireUI():
         raise e
 
     self._sites[site.name] = SiteItems({
-        "config_version": site_latest_version,
-        "ip_networks": site.ip_networks,
-        "peers": peers
+      "config_version": site_latest_version,
+      "ip_networks": site.ip_networks,
+      "peers": peers
     })
 
   def delete_site(self, name: str):
@@ -163,22 +169,38 @@ class WireUI():
       raise PeerDoesExistError(peer.name)
 
     if peer.redirect_all_traffic:
-      redirect_all_traffic = RedirectAllTraffic_({"ipv4": peer.redirect_all_traffic.ipv4, "ipv6": peer.redirect_all_traffic.ipv6})
+      redirect_all_traffic = RedirectAllTraffic_({
+        "ipv4":
+        peer.redirect_all_traffic.ipv4,
+        "ipv6":
+        peer.redirect_all_traffic.ipv6
+      })
     else:
       redirect_all_traffic = None
 
     self._sites[site_name]["peers"][peer.name] = PeerItems({
-        "keys": get_keys(),
-        "additional_allowed_ips": peer.additional_allowed_ips,
-        "outgoing_connected_peers": peer.outgoing_connected_peers,
-        "main_peer": peer.main_peer,
-        "ingoing_connected_peers": peer.ingoing_connected_peers,
-        "endpoint": peer.endpoint,
-        "port": peer.port,
-        "persistent_keep_alive": peer.persistent_keep_alive,
-        "redirect_all_traffic": redirect_all_traffic,
-        "post_up": peer.post_up,
-        "post_down": peer.post_down,
+      "keys":
+      get_keys(),
+      "additional_allowed_ips":
+      peer.additional_allowed_ips,
+      "outgoing_connected_peers":
+      peer.outgoing_connected_peers,
+      "main_peer":
+      peer.main_peer,
+      "ingoing_connected_peers":
+      peer.ingoing_connected_peers,
+      "endpoint":
+      peer.endpoint,
+      "port":
+      peer.port,
+      "persistent_keep_alive":
+      peer.persistent_keep_alive,
+      "redirect_all_traffic":
+      redirect_all_traffic,
+      "post_up":
+      peer.post_up,
+      "post_down":
+      peer.post_down,
     })
 
   def get_peer(self, site_name: str, peer_name: str) -> Peer:
@@ -191,7 +213,10 @@ class WireUI():
       raise PeerDoesNotExistError(peer_name)
 
     if self._sites[site_name]["peers"][peer_name]["redirect_all_traffic"]:
-      redirect_all_traffic = RedirectAllTraffic(self._sites[site_name]["peers"][peer_name]["redirect_all_traffic"]["ipv4"], self._sites[site_name]["peers"][peer_name]["redirect_all_traffic"]["ipv6"])
+      redirect_all_traffic = RedirectAllTraffic(
+        self._sites[site_name]["peers"][peer_name]["redirect_all_traffic"]
+        ["ipv4"], self._sites[site_name]["peers"][peer_name]
+        ["redirect_all_traffic"]["ipv6"])
     else:
       redirect_all_traffic = None
 
@@ -219,22 +244,38 @@ class WireUI():
       raise PeerDoesNotExistError(peer.name)
 
     if peer.redirect_all_traffic:
-      redirect_all_traffic = RedirectAllTraffic_({"ipv4": peer.redirect_all_traffic.ipv4, "ipv6": peer.redirect_all_traffic.ipv6})
+      redirect_all_traffic = RedirectAllTraffic_({
+        "ipv4":
+        peer.redirect_all_traffic.ipv4,
+        "ipv6":
+        peer.redirect_all_traffic.ipv6
+      })
     else:
       redirect_all_traffic = None
 
     self._sites[site_name]["peers"][peer.name] = PeerItems({
-        "keys": self._sites[site_name]["peers"][peer.name]["keys"],
-        "additional_allowed_ips": peer.additional_allowed_ips,
-        "outgoing_connected_peers": peer.outgoing_connected_peers,
-        "main_peer": peer.main_peer,
-        "ingoing_connected_peers": peer.ingoing_connected_peers,
-        "endpoint": peer.endpoint,
-        "port": peer.port,
-        "persistent_keep_alive": peer.persistent_keep_alive,
-        "redirect_all_traffic": redirect_all_traffic,
-        "post_up": peer.post_up,
-        "post_down": peer.post_down,
+      "keys":
+      self._sites[site_name]["peers"][peer.name]["keys"],
+      "additional_allowed_ips":
+      peer.additional_allowed_ips,
+      "outgoing_connected_peers":
+      peer.outgoing_connected_peers,
+      "main_peer":
+      peer.main_peer,
+      "ingoing_connected_peers":
+      peer.ingoing_connected_peers,
+      "endpoint":
+      peer.endpoint,
+      "port":
+      peer.port,
+      "persistent_keep_alive":
+      peer.persistent_keep_alive,
+      "redirect_all_traffic":
+      redirect_all_traffic,
+      "post_up":
+      peer.post_up,
+      "post_down":
+      peer.post_down,
     })
 
   def delete_peer(self, site_name: str, peer_name: str):
@@ -273,7 +314,6 @@ class WireUI():
     if site_name not in self._sites:
       raise SiteDoesNotExistError(site_name)
     return len(self._sites[site_name]["peers"])
-
 
   def get_networks(self, site_name: str) -> tuple:
     allow_ipv4 = False

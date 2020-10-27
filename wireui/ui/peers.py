@@ -35,7 +35,11 @@ def add_peer(w: WireUI, site_name: str):
   peer_name = _get_peer_name(w, site_name, should_exist=False)
   allow_ipv4, allow_ipv6 = w.get_networks(site_name)
   try:
-    w.add_peer(site_name, get_new_peer_properties(w, site_name, peer_name, ConnectionTable([peer_name]), allow_ipv4, allow_ipv6))
+    w.add_peer(
+      site_name,
+      get_new_peer_properties(w, site_name, peer_name,
+                              ConnectionTable([peer_name]), allow_ipv4,
+                              allow_ipv6))
   except PeerDoesExistError:
     print_error(0, "Error: Peer does already exist. Do nothing...")
   else:
@@ -90,7 +94,8 @@ def edit_peer_connections(w: WireUI, site_name: str):
     peer_old = w.get_peer(site_name, p)
 
     # If a peer now has ingoing connections, ask for endpoint and port
-    if not peer_old.ingoing_connected_peers and ct.get_ingoing_connected_peers(p):
+    if not peer_old.ingoing_connected_peers and ct.get_ingoing_connected_peers(
+        p):
       print_message(0, f"Collecting properties of peer {p} (ingoing)...")
       if peer_old.endpoint == "":
         endpoint = get_endpoint()
@@ -106,7 +111,8 @@ def edit_peer_connections(w: WireUI, site_name: str):
         persistent_keep_alive = peer_old.persistent_keep_alive
       if peer_old.additional_allowed_ips == []:
         allow_ipv4, allow_ipv6 = w.get_networks(site_name)
-        additional_allowed_ips = get_additional_allowed_ips(allow_ipv4, allow_ipv6)
+        additional_allowed_ips = get_additional_allowed_ips(
+          allow_ipv4, allow_ipv6)
       else:
         additional_allowed_ips = []
     else:
@@ -116,7 +122,8 @@ def edit_peer_connections(w: WireUI, site_name: str):
       additional_allowed_ips = peer_old.additional_allowed_ips
 
     # If a peer now has outgoing connections, ask for redirect_all_traffic
-    if not peer_old.outgoing_connected_peers and ct.get_outgoing_connected_peers(p):
+    if not peer_old.outgoing_connected_peers and ct.get_outgoing_connected_peers(
+        p):
       print_message(0, f"Collecting properties of peer {p} (outgoing)...")
       if peer_old.redirect_all_traffic == None:
         redirect_all_traffic = get_redirect_all_traffic()
@@ -125,7 +132,9 @@ def edit_peer_connections(w: WireUI, site_name: str):
     else:
       redirect_all_traffic = peer_old.redirect_all_traffic
 
-    w.set_peer(site_name, Peer(
+    w.set_peer(
+      site_name,
+      Peer(
         peer_old.name,
         additional_allowed_ips,
         ct.get_outgoing_connected_peers(p),
@@ -137,7 +146,7 @@ def edit_peer_connections(w: WireUI, site_name: str):
         redirect_all_traffic,
         peer_old.post_up,
         peer_old.post_down,
-    ))
+      ))
 
   create_wireguard_config(w, site_name)
 

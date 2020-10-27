@@ -64,7 +64,8 @@ def site_menu(w: WireUI, site_name: str):
     peers_count = list_peers(w, site_name)
 
     # TODO: Remove this hint when editing is possible
-    print_message(0, "For full editing of peers please use the sites.json file!")
+    print_message(0,
+                  "For full editing of peers please use the sites.json file!")
 
     # if peers_count:
     #   print_message(0, "0: List peers")

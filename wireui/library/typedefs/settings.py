@@ -9,7 +9,6 @@ from .dicts import JsonDict
 
 class Settings(JsonDict):
   """ Settings of the app """
-
   def __getitem__(self, setting_name) -> Any:
     return super().__getitem__(setting_name)
 

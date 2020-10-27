@@ -37,7 +37,7 @@ class JsonDict(UserDict):
         raise e
     else:
       raise TypeError(
-          f"Excpected type of data is dict or str. Got {type(data)}")
+        f"Excpected type of data is dict or str. Got {type(data)}")
 
   def __repr__(self):
     return f"{type(self).__name__}({self.data})"

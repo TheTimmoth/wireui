@@ -35,6 +35,7 @@ def read_file(path: str) -> str:
 #   except JSONDecodeError as e:
 #     raise e
 
+
 def edit_string(s: str = "") -> str:
   with tempfile.NamedTemporaryFile(mode='w+t', delete=False) as f:
     n = f.name
@@ -47,6 +48,7 @@ def edit_string(s: str = "") -> str:
 
   return s
 
+
 def edit_dict(d: JsonDict = JsonDict()) -> JsonDict:
   valid = False
   while not valid:
@@ -57,6 +59,7 @@ def edit_dict(d: JsonDict = JsonDict()) -> JsonDict:
     else:
       valid = True
   return d
+
 
 def edit_connection_table(ct: ConnectionTable) -> ConnectionTable:
   s = ""
@@ -69,6 +72,7 @@ def edit_connection_table(ct: ConnectionTable) -> ConnectionTable:
     else:
       valid = True
   return ct
+
 
 def prepare_directory(path: str):
   """ Clears existing config files in a directory """

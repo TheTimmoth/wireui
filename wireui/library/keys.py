@@ -14,9 +14,9 @@ def get_keys() -> Keys:
 
   privkey = _get_privkey()
   return Keys({
-      "privkey": privkey,
-      "pubkey": _get_pubkey(privkey),
-      "psk": _get_psk(),
+    "privkey": privkey,
+    "pubkey": _get_pubkey(privkey),
+    "psk": _get_psk(),
   })
 
 
@@ -42,9 +42,9 @@ def _run(*args, **kwargs) -> str:
   """ Run a program on the OS and collect output """
 
   try:
-    return subprocess.run(
-        *args, stdout=subprocess.PIPE,
-        **kwargs).stdout.decode("utf-8").strip()
-  except FileNotFoundError as e:
+    return subprocess.run(*args, stdout=subprocess.PIPE,
+                          **kwargs).stdout.decode("utf-8").strip()
+  except FileNotFoundError:
     raise WireguardNotFoundError(
-        "Wireguard not found. Please install it and/or make shure it is available via $PATH")
+      "Wireguard not found. Please install it and/or make shure it is available via $PATH"
+    )

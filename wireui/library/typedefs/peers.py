@@ -17,7 +17,6 @@ PeerItems = dict
 
 class Peers(dict):
   """ Peers for wireguard """
-
   def __getitem__(self, peer_name) -> PeerItems:
     return super().__getitem__(peer_name)
 

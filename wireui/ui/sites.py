@@ -49,11 +49,11 @@ def add_site(w: WireUI) -> str:
   # Create peer list
   peers = []
   for p in peer_names:
-    peers.append(get_new_peer_properties(w, site_name, p, ct, allow_ipv4, allow_ipv6))
+    peers.append(
+      get_new_peer_properties(w, site_name, p, ct, allow_ipv4, allow_ipv6))
 
   try:
-    w.add_site(
-        Site(site_name, ip, peers))
+    w.add_site(Site(site_name, ip, peers))
   except SiteDoesExistError as e:
     print_error(0, "Site does already exist. Doing nothing...")
     print_error(0, e)
@@ -105,8 +105,8 @@ def _get_ip_network(ip_version: int = 4) -> str:
     else:
       if ip_version != ip_network.version:
         print_error(
-            0, "Error: You entered an IPv" + ip_network.version +
-            " network, but an IPv" + ip_version + " network is expected.")
+          0, "Error: You entered an IPv" + ip_network.version +
+          " network, but an IPv" + ip_version + " network is expected.")
         continue
 
       return str(ip_network.with_prefixlen)
@@ -114,7 +114,8 @@ def _get_ip_network(ip_version: int = 4) -> str:
 
 def _get_peer_names() -> tuple:
   # Get peer names
-  peer_names = input("Please enter the name of the peers (use ' ' as separation): ")
+  peer_names = input(
+    "Please enter the name of the peers (use ' ' as separation): ")
   peer_names = _convert_str_to_list(peer_names)
 
   # Check names
@@ -131,6 +132,7 @@ def _get_peer_names() -> tuple:
   peer_names = _convert_str_to_list(peer_names)
   return peer_names
 
+
 def _convert_str_to_list(peer_names: str) -> list:
   """ Convert a str to a list.
 
@@ -139,6 +141,7 @@ def _convert_str_to_list(peer_names: str) -> list:
   peer_names = list(set(peer_names.split()))
   peer_names.sort()
   return peer_names
+
 
 def _convert_list_to_str(peer_names: list) -> str:
   """ Convert a list to a str.

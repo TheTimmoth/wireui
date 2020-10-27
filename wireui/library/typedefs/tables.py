@@ -4,10 +4,14 @@
 
 from .exceptions import PeerDoesNotExistError
 
+
 class Table():
   """ n x m table """
-
-  def __init__(self, n: int , m: int, row_names: list = [], column_names: list = []):
+  def __init__(self,
+               n: int,
+               m: int,
+               row_names: list = [],
+               column_names: list = []):
     if len(row_names) != n and row_names != []:
       raise ValueError("Dimension mismatch: len(row_names) != n")
     if len(column_names) != m and column_names != []:
@@ -63,8 +67,10 @@ class Table():
         s += self.row_names[i]
       for j in range(self.m):
         s += f" {self.content[i][j]}"
-        if len(self.column_names) > 0 and len(str(self.content[i][j])) < self.column_names_lengths[j]:
-          for _ in range(self.column_names_lengths[j] - len(str(self.content[i][j]))):
+        if len(self.column_names) > 0 and len(str(
+            self.content[i][j])) < self.column_names_lengths[j]:
+          for _ in range(self.column_names_lengths[j] -
+                         len(str(self.content[i][j]))):
             s += " "
       s += "\n"
 
@@ -85,12 +91,16 @@ class Table():
     if len(r) == self.m:
       self.content[i] = r
     else:
-      raise ValueError(f"Dimension mismatch: len(r) ({len(r)}) != self.m ({self.m})")
+      raise ValueError(
+        f"Dimension mismatch: len(r) ({len(r)}) != self.m ({self.m})")
+
 
 class ConnectionTable(Table):
   """ ConnectionTable for peers """
   def __init__(self, peer_names: list):
-    super().__init__(len(peer_names), len(peer_names) + 1, peer_names, peer_names + ["main_peer"])
+    super().__init__(len(peer_names),
+                     len(peer_names) + 1, peer_names,
+                     peer_names + ["main_peer"])
     for i in range(self.n):
       for j in range(self.n):
         self.setitem(i, j, 0)
@@ -99,19 +109,19 @@ class ConnectionTable(Table):
   def __repr__(self):
     return f"{type(self).__name__}({self.row_names})"
 
-
   def setitem(self, i: int, j: int, v: any):
     """ Set the item in row i and column j to value v
 
         Please execute check_integrity afterwards to make sure changed data is still valid """
 
     if i == j and v == 1:
-      raise ValueError("A peer cannot be connected to itself. Please make sure that all diagonal elements are '0'!")
+      raise ValueError(
+        "A peer cannot be connected to itself. Please make sure that all diagonal elements are '0'!"
+      )
     if j == self.m - 1 and not isinstance(v, str):
       raise ValueError(f"v ({v}) has to be an str not {type(v)}")
 
     super().setitem(i, j, v)
-
 
   def update(self, s: str):
     """ Updates the table with a str representation of a ConnectionTable object """
@@ -126,7 +136,8 @@ class ConnectionTable(Table):
       s[i] = s[i].split()
 
       if len(s[i]) != self.m:
-        raise ValueError(f"Dimension mismatch: len(s[i]) ({len(s[i])}) != self.m ({self.m})")
+        raise ValueError(
+          f"Dimension mismatch: len(s[i]) ({len(s[i])}) != self.m ({self.m})")
 
       # Update table
       for j in range(self.m):
@@ -136,7 +147,6 @@ class ConnectionTable(Table):
           self.setitem(i, j, s[i][j])
 
     self._check_integrity()
-
 
   def get_outgoing_connected_peers(self, name: str) -> list:
     """ Get a list of all peers that peer 'name' has an outgoing connection to """
@@ -157,7 +167,6 @@ class ConnectionTable(Table):
 
     return l
 
-
   def get_main_peer(self, name: str) -> str:
     """ Get the main peer for outgoing connections for a peer """
     # Get row index for peer
@@ -170,7 +179,6 @@ class ConnectionTable(Table):
       raise PeerDoesNotExistError(name)
 
     return (self.getitem(row, self.m - 1))
-
 
   def get_ingoing_connected_peers(self, name: str) -> list:
     """ Get a list of all peers that peer 'name' has an ingoing connection from """
@@ -208,8 +216,11 @@ class ConnectionTable(Table):
       if len(self.get_outgoing_connected_peers(self.row_names[i])) > 0:
         if not self.getitem(i, self.m - 1):
           msg += f"Peer {self.row_names[i]}: If there is an outgoing connection there has to be a main_peer.\n"
-          self.setitem(i, self.m - 1, self.get_outgoing_connected_peers(self.row_names[i])[0])
-        elif self.getitem(i, self.m - 1) not in self.get_outgoing_connected_peers(self.row_names[i]):
+          self.setitem(i, self.m - 1,
+                       self.get_outgoing_connected_peers(self.row_names[i])[0])
+        elif self.getitem(i,
+                          self.m - 1) not in self.get_outgoing_connected_peers(
+                            self.row_names[i]):
           msg += f"Peer {self.row_names[i]}: The main_peer is not an outgoing_connected_peer.\n"
 
     if msg:

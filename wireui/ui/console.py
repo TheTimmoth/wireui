@@ -13,8 +13,8 @@ def set_verbosity(verbosity: int = 0):
   global _verbosity
 
   assert isinstance(
-      verbosity, int
-  ), f"verbosity should be <class \'int\'> and not {str(type(verbosity))}"
+    verbosity,
+    int), f"verbosity should be <class \'int\'> and not {str(type(verbosity))}"
   assert verbosity >= 0, f"verbosity should be >= 0 and not {verbosity}"
   _verbosity = verbosity
 

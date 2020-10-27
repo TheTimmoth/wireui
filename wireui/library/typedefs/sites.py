@@ -12,19 +12,12 @@ from .dicts import JsonDict
 from .peers import PeerItems
 from .peers import Peers
 
-
 #Evaluate TypedDict when python3.8 is available
 SiteItems = dict
 
 
 class Sites(JsonDict):
   """ Sites for wireguard """
-  def __init__(self,
-               initialdata: Union[dict, str] = {},
-               defaults: Union[dict, str] = {}):
-
-    super().__init__(initialdata, defaults)
-
   def __getitem__(self, site_name) -> SiteItems:
     return super().__getitem__(site_name)
 

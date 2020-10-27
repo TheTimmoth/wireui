@@ -11,13 +11,13 @@ from .library import WireUI
 from .ui import run_ui
 
 __all__ = [
-    "DataIntegrityError",
-    "PeerDoesExistError",
-    "PeerDoesNotExistError",
-    "SettingDoesNotExistError",
-    "Site",
-    "SiteDoesExistError",
-    "SiteDoesNotExistError",
-    "WireguardNotFoundError",
-    "WireUI",
+  "DataIntegrityError",
+  "PeerDoesExistError",
+  "PeerDoesNotExistError",
+  "SettingDoesNotExistError",
+  "Site",
+  "SiteDoesExistError",
+  "SiteDoesNotExistError",
+  "WireguardNotFoundError",
+  "WireUI",
 ]
