@@ -146,6 +146,7 @@ def edit_peer_connections(w: WireUI, site_name: str):
         redirect_all_traffic,
         peer_old.post_up,
         peer_old.post_down,
+        peer_old.ipv6_routing_fix,
       ))
 
   create_wireguard_config(w, site_name)

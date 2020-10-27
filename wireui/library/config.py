@@ -157,11 +157,11 @@ def _get_allowed_ips_line(peer_name: str, peer: PeerItems,
 
   allowed_ips_line = "AllowedIPs = "
   for network in peer_addresses[peer_name].keys():
-    if peer_name in interface_peer[
+    if peer_name == interface_peer[
         "main_peer"] and network.version == 4 and interface_peer[
           "redirect_all_traffic"]["ipv4"]:
       allowed_ips_line += "0.0.0.0/0, "
-    elif peer_name in interface_peer["main_peer"] and network.version == 6 and (
+    elif peer_name == interface_peer["main_peer"] and network.version == 6 and (
         interface_peer["redirect_all_traffic"]["ipv6"]
         or interface_peer["ipv6_routing_fix"]):
       allowed_ips_line += "::/0, "
