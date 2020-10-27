@@ -57,13 +57,25 @@ def get_new_peer_properties(w: WireUI, site_name: str, peer_name: str,
   post_up = get_post_up()
   post_down = get_post_down()
 
+  #ipv6_routing_fix
+  ipv6_routing_fix = False
+
   print_message(0, "The data can be changes in the file \"sites.json\"")
 
-  return Peer(peer_name, additional_allowed_ips,
-              ct.get_outgoing_connected_peers(peer_name),
-              ct.get_main_peer(peer_name),
-              ct.get_ingoing_connected_peers(peer_name), endpoint, port,
-              persistent_keep_alive, redirect_all_traffic, post_up, post_down)
+  return Peer(
+    peer_name,
+    additional_allowed_ips,
+    ct.get_outgoing_connected_peers(peer_name),
+    ct.get_main_peer(peer_name),
+    ct.get_ingoing_connected_peers(peer_name),
+    endpoint,
+    port,
+    persistent_keep_alive,
+    redirect_all_traffic,
+    post_up,
+    post_down,
+    ipv6_routing_fix,
+  )
 
 
 # TODO: is correct messages

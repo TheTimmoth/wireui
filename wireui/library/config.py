@@ -67,10 +67,20 @@ def _get_interface_section(name: str, peer: PeerItems,
         "ipv6"]:
       s += f"DNS = 1.1.1.1, 8.8.8.8\n"
   s += f"PrivateKey = " + peer["keys"]["privkey"] + "\n"
-  if peer['post_up']:
-    s += f"PostUp = {peer['post_up']}\n"
-  if peer['post_down']:
-    s += f"PostDown = {peer['post_down']}\n"
+  post_up = ""
+  post_down = ""
+  if peer["ipv6_routing_fix"]:
+    for network in peer_addresses[name]:
+      if peer_addresses[name][network].version == 6:
+        post_up += f"ip -6 rule add from {peer_addresses[name][network]} table 501; ip -6 route add default via {peer_addresses[peer['main_peer']][network]} table 501; ip -6 rule delete table 51820; ip -6 rule delete table main suppress_prefixlength 0;"
+        break
+    post_down += "ip -6 rule delete table 501;"
+    post_up += " "
+    post_down += " "
+  if peer["post_up"]:
+    s += f"PostUp = {post_up}{peer['post_up']}\n"
+  if peer["post_down"]:
+    s += f"PostDown = {post_down}{peer['post_down']}\n"
   s += "\n"
   return s
 

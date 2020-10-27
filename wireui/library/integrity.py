@@ -93,6 +93,7 @@ def check_peer_integrity(peers: Peers, site_name: str, ipv4_network: bool,
       if version == "0.1.0":
         peers[p]["post_up"] = ""
         peers[p]["post_down"] = ""
+        peers[p]["ipv6_routing_fix"] = False
 
         _check_key(peers[p], "redirect_all_traffic", "peer",
                    f"{p} (site \"{site_name}\")", [bool, None], "bool or null")
@@ -194,6 +195,10 @@ def check_peer_integrity(peers: Peers, site_name: str, ipv4_network: bool,
                [str], "str")
     _check_key(peers[p], "post_down", "peer", f"{p} (site \"{site_name}\")",
                [str], "str")
+
+    # Check ipv6_routing_fix
+    _check_key(peers[p], "ipv6_routing_fix", "peer",
+               f"{p} (site \"{site_name}\")", [bool], "bool")
 
   return peers
 

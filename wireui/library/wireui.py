@@ -60,6 +60,7 @@ class Peer(NamedTuple):
   redirect_all_traffic: RedirectAllTraffic
   post_up: str
   post_down: str
+  ipv6_routing_fix: bool
 
 
 class WireUI():
@@ -123,6 +124,7 @@ class WireUI():
           "redirect_all_traffic": redirect_all_traffic,
           "post_up": p.post_up,
           "post_down": p.post_down,
+          "ipv6_routing_fix": p.ipv6_routing_fix,
         })
       except PeerDoesExistError as e:
         raise e
@@ -201,6 +203,8 @@ class WireUI():
       peer.post_up,
       "post_down":
       peer.post_down,
+      "ipv6_routing_fix":
+      peer.ipv6_routing_fix,
     })
 
   def get_peer(self, site_name: str, peer_name: str) -> Peer:
@@ -215,8 +219,10 @@ class WireUI():
     if self._sites[site_name]["peers"][peer_name]["redirect_all_traffic"]:
       redirect_all_traffic = RedirectAllTraffic(
         self._sites[site_name]["peers"][peer_name]["redirect_all_traffic"]
-        ["ipv4"], self._sites[site_name]["peers"][peer_name]
-        ["redirect_all_traffic"]["ipv6"])
+        ["ipv4"],
+        self._sites[site_name]["peers"][peer_name]["redirect_all_traffic"]
+        ["ipv6"],
+      )
     else:
       redirect_all_traffic = None
 
@@ -232,6 +238,7 @@ class WireUI():
       redirect_all_traffic,
       self._sites[site_name]["peers"][peer_name]["post_up"],
       self._sites[site_name]["peers"][peer_name]["post_down"],
+      self._sites[site_name]["peers"][peer_name]["ipv6_routing_fix"],
     )
 
   def set_peer(self, site_name: str, peer: Peer):
@@ -276,6 +283,8 @@ class WireUI():
       peer.post_up,
       "post_down":
       peer.post_down,
+      "ipv6_routing_fix":
+      peer.ipv6_routing_fix,
     })
 
   def delete_peer(self, site_name: str, peer_name: str):
