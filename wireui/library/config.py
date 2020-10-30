@@ -96,8 +96,7 @@ def _get_peer_section(name: str, peer: PeerItems, interface_peer_name: str,
   s += f"[Peer]\n"
   if peer["endpoint"] and name in interface_peer["outgoing_connected_peers"]:
     s += f"Endpoint = {peer['endpoint']}:{peer['port']}\n"
-    if interface_peer["persistent_keep_alive"] == 25 or peer[
-        "persistent_keep_alive"] == 25:
+    if interface_peer["persistent_keep_alive"] == 25:
       s += "PersistentKeepAlive = 25\n"
   s += f"PublicKey = " + peer["keys"]["pubkey"] + "\n"
 
