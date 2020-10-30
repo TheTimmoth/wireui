@@ -39,18 +39,18 @@ def get_new_peer_properties(w: WireUI, site_name: str, peer_name: str,
   if ct.get_ingoing_connected_peers(peer_name):
     endpoint = get_endpoint()
     port = get_port()
-    persistent_keep_alive = get_persistent_keep_alive()
     additional_allowed_ips = get_additional_allowed_ips(allow_ipv4, allow_ipv6)
   else:
     endpoint = ""
     port = 0
-    persistent_keep_alive = -1
     additional_allowed_ips = []
 
   # If peer has outgoing connections redirect_all_traffic is needed
   if ct.get_outgoing_connected_peers(peer_name):
+    persistent_keep_alive = get_persistent_keep_alive()
     redirect_all_traffic = get_redirect_all_traffic()
   else:
+    persistent_keep_alive = -1
     redirect_all_traffic = None
 
   #Get post up and down
