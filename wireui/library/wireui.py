@@ -13,6 +13,7 @@ from typing import Optional
 from .config import delete_config
 from .config import write_config
 
+from .integrity import check_wireguard
 from .integrity import check_settings_integrity
 from .integrity import check_site_integrity
 from .integrity import settings_latest_version
@@ -84,6 +85,7 @@ class WireUI():
 
     self._sites = Sites(read_file(self._settings.get("sites_file_path")))
 
+    check_wireguard()
     check_settings_integrity(self._settings)
     check_site_integrity(self._sites)
 

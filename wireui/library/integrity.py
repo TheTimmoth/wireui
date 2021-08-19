@@ -1,9 +1,11 @@
 # integrity.py
-# Check data integrity
+# Check program and data integrity
 # Author: Tim Schlottmann
 
 import ipaddress
+from .typedefs.exceptions import WireguardNotFoundError
 
+from .keys import get_keys
 from .typedefs import DataIntegrityError
 from .typedefs import PeerItems
 from .typedefs import Peers
@@ -20,6 +22,11 @@ version_dict = {
 
 settings_latest_version = "0.1.0"
 site_latest_version = "0.1.2"
+
+
+def check_wireguard():
+  get_keys()
+
 
 # Data check recipe
 #
