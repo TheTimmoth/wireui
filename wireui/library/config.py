@@ -87,9 +87,9 @@ def _get_interface_section(name: str, peer: PeerItems,
   post_up += peer["post_up"]
   post_down += peer["post_down"]
   if post_up:
-    s += f"PostUp = {post_up}{peer['post_up']}\n"
+    s += f"PostUp = {post_up}\n"
   if post_down:
-    s += f"PostDown = {post_down}{peer['post_down']}\n"
+    s += f"PostDown = {post_down}\n"
   s += "\n"
   return s
 
