@@ -34,10 +34,11 @@ def list_peers(w: WireUI, site_name: str) -> int:
 def add_peer(w: WireUI, site_name: str):
   peer_name = _get_peer_name(w, site_name, should_exist=False)
   allow_ipv4, allow_ipv6 = w.get_networks(site_name)
+  dns = w.get_dns(site_name)
   try:
     w.add_peer(
       site_name,
-      get_new_peer_properties(w, site_name, peer_name,
+      get_new_peer_properties(w, site_name, peer_name, dns,
                               ConnectionTable([peer_name]), allow_ipv4,
                               allow_ipv6))
   except PeerDoesExistError:

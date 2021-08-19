@@ -41,6 +41,7 @@ from .typedefs import Sites
 class Site(NamedTuple):
   name: str
   ip_networks: str
+  dns: list
   peers: list
 
 
@@ -57,6 +58,7 @@ class Peer(NamedTuple):
   ingoing_connected_peers: list
   endpoint: str
   port: int
+  dns: list
   persistent_keep_alive: int
   redirect_all_traffic: RedirectAllTraffic
   post_up: str
@@ -122,6 +124,7 @@ class WireUI():
           "ingoing_connected_peers": p.ingoing_connected_peers,
           "endpoint": p.endpoint,
           "port": p.port,
+          "dns": site.dns,
           "persistent_keep_alive": p.persistent_keep_alive,
           "redirect_all_traffic": redirect_all_traffic,
           "post_up": p.post_up,
@@ -134,6 +137,7 @@ class WireUI():
     self._sites[site.name] = SiteItems({
       "config_version": site_latest_version,
       "ip_networks": site.ip_networks,
+      "dns": site.dns,
       "peers": peers
     })
 
@@ -197,6 +201,8 @@ class WireUI():
       peer.endpoint,
       "port":
       peer.port,
+      "dns":
+      self._sites[site_name]["dns"],
       "persistent_keep_alive":
       peer.persistent_keep_alive,
       "redirect_all_traffic":
@@ -236,6 +242,7 @@ class WireUI():
       self._sites[site_name]["peers"][peer_name]["ingoing_connected_peers"],
       self._sites[site_name]["peers"][peer_name]["endpoint"],
       self._sites[site_name]["peers"][peer_name]["port"],
+      self._sites[site_name]["peers"][peer_name]["dns"],
       self._sites[site_name]["peers"][peer_name]["persistent_keep_alive"],
       redirect_all_traffic,
       self._sites[site_name]["peers"][peer_name]["post_up"],
@@ -277,6 +284,8 @@ class WireUI():
       peer.endpoint,
       "port":
       peer.port,
+      "dns":
+      peer.dns,
       "persistent_keep_alive":
       peer.persistent_keep_alive,
       "redirect_all_traffic":
@@ -336,6 +345,9 @@ class WireUI():
       elif v == 6:
         allow_ipv6 = True
     return allow_ipv4, allow_ipv6
+
+  def get_dns(self, site_name: str) -> list:
+    return self._sites[site_name]["dns"]
 
   def create_wireguard_config(self, site_name: str) -> list:
     """ Write the wireguard config files """
