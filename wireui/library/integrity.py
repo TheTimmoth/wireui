@@ -1,9 +1,11 @@
 # integrity.py
-# Check data integrity
+# Check program and data integrity
 # Author: Tim Schlottmann
 
 import ipaddress
+from .typedefs.exceptions import WireguardNotFoundError
 
+from .keys import get_keys
 from .typedefs import DataIntegrityError
 from .typedefs import PeerItems
 from .typedefs import Peers
@@ -15,10 +17,16 @@ from .typedefs import Sites
 version_dict = {
   "0.1.0": 1,
   "0.1.1": 2,
+  "0.1.2": 3,
 }
 
 settings_latest_version = "0.1.0"
-site_latest_version = "0.1.1"
+site_latest_version = "0.1.2"
+
+
+def check_wireguard():
+  get_keys()
+
 
 # Data check recipe
 #
@@ -46,6 +54,10 @@ def check_site_integrity(sites: Sites) -> Sites:
       # Update routines for config_version 0.1.0
       if sites[s]["config_version"] == "0.1.0":
         sites[s]["config_version"] = "0.1.1"
+      # Update routines for config_version 0.1.1
+      if sites[s]["config_version"] == "0.1.1":
+        sites[s]["dns"] = ["1.1.1.1", "8.8.8.8"]
+        sites[s]["config_version"] = "0.1.2"
 
     # Newer version -> Error
     elif version_dict[sites[s]
@@ -74,6 +86,16 @@ def check_site_integrity(sites: Sites) -> Sites:
         ipv4_network = True
       elif v == 6:
         ipv6_network = True
+
+    # Check DNS servers
+    _check_key(sites[s], "dns", "site", s, [list], "list")
+    for d in sites[s]["dns"]:
+      _check_datatype(d, "key", "dns", [str], "str")
+      try:
+        v = ipaddress.ip_address(d)
+      except ValueError as e:
+        raise DataIntegrityError(
+          f"{d} in key \"dns\" in site {s} is not a valid IP address\n{e}")
 
     # Check peers
     sites[s]["peers"] = check_peer_integrity(Peers(sites[s]["peers"]), s,
@@ -108,6 +130,9 @@ def check_peer_integrity(peers: Peers, site_name: str, ipv4_network: bool,
             "ipv6": False
           })
         version = "0.1.1"
+      if version == "0.1.1":
+        peers[p]["dns"] = ["1.1.1.1", "8.8.8.8"]
+        version = "0.1.2"
 
     # Flags
 
@@ -135,6 +160,17 @@ def check_peer_integrity(peers: Peers, site_name: str, ipv4_network: bool,
         raise DataIntegrityError(
           f"{n} in key \"additional_allowed_ips\" in peer {p} (site \"{site_name}\") is IPv6, but IPv6 is not activated in the site"
         )
+
+    # Check DNS servers
+    _check_key(peers[p], "dns", "site", f"{p} (site \"{site_name}\")", [list],
+               "list")
+    for d in peers[p]["dns"]:
+      _check_datatype(d, "key", "dns", [str], "str")
+      try:
+        v = ipaddress.ip_address(d)
+      except ValueError as e:
+        raise DataIntegrityError(
+          f"{d} in key \"dns\" in peer {p} is not a valid IP address\n{e}")
 
     # Check ingoing and outgoing_connected_peers and main_peer
     # If peer p2 is outgoing_connected_peer of peer p1, p1 has to be ingoing_connected of peer p2.

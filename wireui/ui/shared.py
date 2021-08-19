@@ -31,7 +31,7 @@ def create_wireguard_config(w: WireUI, site_name: str):
 
 
 def get_new_peer_properties(w: WireUI, site_name: str, peer_name: str,
-                            ct: ConnectionTable, allow_ipv4: bool,
+                            dns: list, ct: ConnectionTable, allow_ipv4: bool,
                             allow_ipv6: bool) -> Peer:
   print_message(0, f"Collecting properties of peer {peer_name}...")
 
@@ -70,6 +70,7 @@ def get_new_peer_properties(w: WireUI, site_name: str, peer_name: str,
     ct.get_ingoing_connected_peers(peer_name),
     endpoint,
     port,
+    dns,
     persistent_keep_alive,
     redirect_all_traffic,
     post_up,

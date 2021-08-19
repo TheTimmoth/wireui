@@ -65,7 +65,13 @@ def _get_interface_section(name: str, peer: PeerItems,
   if peer["redirect_all_traffic"]:
     if peer["redirect_all_traffic"]["ipv4"] and peer["redirect_all_traffic"][
         "ipv6"]:
-      s += f"DNS = 1.1.1.1, 8.8.8.8\n"
+      if peer["dns"]:
+        s += f"DNS = "
+        for a in peer["dns"]:
+          s += f"{a}, "
+        s = s[:-2] + "\n"
+      else:
+        s += f"DNS = 1.1.1.1, 8.8.8.8\n"
   s += f"PrivateKey = " + peer["keys"]["privkey"] + "\n"
 
   post_up = ""
@@ -81,9 +87,9 @@ def _get_interface_section(name: str, peer: PeerItems,
   post_up += peer["post_up"]
   post_down += peer["post_down"]
   if post_up:
-    s += f"PostUp = {post_up}{peer['post_up']}\n"
+    s += f"PostUp = {post_up}\n"
   if post_down:
-    s += f"PostDown = {post_down}{peer['post_down']}\n"
+    s += f"PostDown = {post_down}\n"
   s += "\n"
   return s
 

@@ -10,6 +10,7 @@ from .shared import print_error
 from ..library import DataIntegrityError
 from ..library import WireUI
 from ..library import SettingDoesNotExistError
+from ..library import WireguardNotFoundError
 
 _SETTINGS_PATH = "./settings.json"
 
@@ -19,6 +20,8 @@ def run_ui():
   try:
     w = WireUI("./settings.json")
   except DataIntegrityError as e:
+    s += f"{e}\n"
+  except WireguardNotFoundError as e:
     s += f"{e}\n"
   if s:
     print_error(0, s[:-1])

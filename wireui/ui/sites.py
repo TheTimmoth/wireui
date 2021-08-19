@@ -39,6 +39,8 @@ def add_site(w: WireUI) -> str:
   if allow_ipv6:
     ip.append(_get_ip_network(6))
 
+  dns = _get_dns()
+
   peer_names = _get_peer_names()
 
   # Editing of the connection table
@@ -50,10 +52,11 @@ def add_site(w: WireUI) -> str:
   peers = []
   for p in peer_names:
     peers.append(
-      get_new_peer_properties(w, site_name, p, ct, allow_ipv4, allow_ipv6))
+      get_new_peer_properties(w, site_name, p, dns, ct, allow_ipv4,
+                              allow_ipv6))
 
   try:
-    w.add_site(Site(site_name, ip, peers))
+    w.add_site(Site(site_name, ip, dns, peers))
   except SiteDoesExistError as e:
     print_error(0, "Site does already exist. Doing nothing...")
     print_error(0, e)
@@ -112,6 +115,31 @@ def _get_ip_network(ip_version: int = 4) -> str:
       return str(ip_network.with_prefixlen)
 
 
+def _get_dns() -> list:
+  while True:
+    dns = input(
+      "Please enter the name of the dns servers (use ' ' as separation): ")
+    dns = _convert_str_to_list(dns)
+    for a in dns:
+      try:
+        ipaddress.ip_address(a)
+      except ValueError as e:
+        dns.remove(a)
+    print_message(0, "The following DNS entries have been detected:")
+    dns = _convert_list_to_str(dns)
+
+    correct = False
+    while not correct:
+      correct = yes_no_menu("Is everything correct?")
+      if not correct:
+        dns = edit_string(dns)
+        dns = _convert_str_to_list(dns)
+        print_message(0, "The following peers has been detected:")
+        dns = _convert_list_to_str(dns)
+    dns = _convert_str_to_list(dns)
+    return dns
+
+
 def _get_peer_names() -> tuple:
   # Get peer names
   peer_names = input(
@@ -119,6 +147,7 @@ def _get_peer_names() -> tuple:
   peer_names = _convert_str_to_list(peer_names)
 
   # Check names
+  print_message(0, "The following peers has been detected:")
   peer_names = _convert_list_to_str(peer_names)
 
   correct = False
@@ -127,32 +156,33 @@ def _get_peer_names() -> tuple:
     if not correct:
       peer_names = edit_string(peer_names)
       peer_names = _convert_str_to_list(peer_names)
+      print_message(0, "The following peers has been detected:")
       peer_names = _convert_list_to_str(peer_names)
 
   peer_names = _convert_str_to_list(peer_names)
   return peer_names
 
 
-def _convert_str_to_list(peer_names: str) -> list:
+def _convert_str_to_list(s: str) -> list:
   """ Convert a str to a list.
 
   Doubled entires are removed and the list is sorted. """
 
-  peer_names = list(set(peer_names.split()))
-  peer_names.sort()
-  return peer_names
+  s = list(set(s.split()))
+  s.sort()
+  return s
 
 
-def _convert_list_to_str(peer_names: list) -> str:
+def _convert_list_to_str(l: list) -> str:
   """ Convert a list to a str.
 
   Elements are separated with ' '"""
 
   print_message(0, "The following peers has been detected:")
   s = ""
-  for p in peer_names:
-    print_message(0, str(p))
-    s += f"{p} "
+  for e in l:
+    print_message(0, str(e))
+    s += f"{e} "
   s = s[:-1]
 
   return s
