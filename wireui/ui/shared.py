@@ -1,9 +1,16 @@
+# shared.py
+# Shared functions between sites.py and peers.py
+# Author: Tim Schlottmann
+
 import ipaddress
 import os
+import re
 import subprocess
 import tempfile
 
-from .console import print_error, print_message
+from . import strings
+
+from .console import leave_menu, print_error, print_list, print_message, write_header, yes_no_menu
 
 from ..library import ConnectionTable
 from ..library import JSONDecodeError
@@ -14,31 +21,20 @@ from ..library import RedirectAllTraffic
 from ..library import WireUI
 
 
-def yes_no_menu(string) -> bool:
-  valid = False
-  while not valid:
-    choice = input(string + " [y/n] ")
-    if choice == "y":
-      choice = True
-      valid = True
-    elif choice == "n":
-      choice = False
-      valid = True
-  return choice
-
-
 def create_wireguard_config(w: WireUI, site_name: str):
   created_files = w.create_wireguard_config(site_name)
   print_message(1, "The following files have been created:")
-  for f in created_files:
-    print_message(1, f)
+  print_list(created_files)
   print_message(0, f"{len(created_files)} file(s) have been created.")
 
 
 def get_new_peer_properties(w: WireUI, site_name: str, peer_name: str,
                             dns: list, ct: ConnectionTable, allow_ipv4: bool,
                             allow_ipv6: bool) -> Peer:
-  print_message(0, f"Collecting properties of peer {peer_name}...")
+  write_header(f"Peer {peer_name}")
+  input(
+    f"Collecting information for peer {peer_name}.\nPress ENTER to continue..."
+  )
 
   # If peer has ingoing connections endpoint and port is needed
   if ct.get_ingoing_connected_peers(peer_name):
@@ -53,7 +49,7 @@ def get_new_peer_properties(w: WireUI, site_name: str, peer_name: str,
   # If peer has outgoing connections redirect_all_traffic is needed
   if ct.get_outgoing_connected_peers(peer_name):
     persistent_keep_alive = get_persistent_keep_alive()
-    redirect_all_traffic = get_redirect_all_traffic()
+    redirect_all_traffic = get_redirect_all_traffic(allow_ipv4, allow_ipv6)
   else:
     persistent_keep_alive = -1
     redirect_all_traffic = None
@@ -65,7 +61,7 @@ def get_new_peer_properties(w: WireUI, site_name: str, peer_name: str,
   #ipv6_routing_fix
   ipv6_routing_fix = False
 
-  print_message(0, "The data can be changes in the file \"sites.json\"")
+  leave_menu()
 
   return Peer(
     peer_name,
@@ -84,14 +80,25 @@ def get_new_peer_properties(w: WireUI, site_name: str, peer_name: str,
   )
 
 
-# TODO: is correct messages
 def get_endpoint() -> str:
-  return input("Please enter the URL or IP address of the server: ")
+  while True:
+    write_header("Getting endpoint address")
+    endpoint = input("Please enter the URL or IP address of the server: ")
+    # TODO: check for valid ipv6 address
+    if re.match(
+        r"^(?:[a-zA-Z0-9]+[.])*[a-z]{2,12}$|^(?:[0-9]{1,3}[.]){3}[0-9]{1,3}$",
+        endpoint) is None:
+      if yes_no_menu("Endpoint may be not valid. Ignore?"):
+        break
+    else:
+      break
+  leave_menu()
+  return endpoint
 
 
-# TODO: is correct messages
 def get_port() -> int:
   while True:
+    write_header("Enter port number")
     port = input("Please enter the port the adapter should listen on: ")
     try:
       port = int(port)
@@ -99,25 +106,31 @@ def get_port() -> int:
       print_error(0, "Error: The port was not a valid integer.")
       continue
     else:
-      if port <= 0 or port > 65535:
-        print_error(0, "Error: The port should be between 0 and 65535")
+      if port <= 1 or port > 65535:
+        print_error(0, "Error: The port should be between 1 and 65535")
         continue
+    leave_menu()
     return port
 
 
 def get_persistent_keep_alive() -> int:
+  write_header("NAT")
   if yes_no_menu("Is the peer behind a NAT?"):
+    leave_menu()
     return 25
   else:
+    leave_menu()
     return 0
 
 
-# TODO: is correct messages
 def get_additional_allowed_ips(allow_ipv4: bool, allow_ipv6: bool) -> list:
   l = []
+  write_header("Additional routable IPs")
   if yes_no_menu("Do you want to add an additional AllowedIP network?"):
     while True:
+      write_header()
       while True:
+        write_header()
         try:
           a = ipaddress.ip_network(
             input(
@@ -143,32 +156,41 @@ def get_additional_allowed_ips(allow_ipv4: bool, allow_ipv6: bool) -> list:
       else:
         break
 
+  leave_menu()
   return l
 
 
 def get_post_up() -> str:
   post_up = ""
-  while True:
-    if yes_no_menu("Do you want to add a PostUp command?"):
-      post_up = get_input("Please enter the PostUp command")
-    break
+  write_header("PostUp")
+  if yes_no_menu("Do you want to add a PostUp command?"):
+    post_up = get_input("Please enter the PostUp command")
+  leave_menu()
   return post_up
 
 
 def get_post_down() -> str:
   post_down = ""
+  write_header("PostDown")
   if yes_no_menu("Do you want to add a PostDown command?"):
     post_down = get_input("Please enter the PostDown command")
+  leave_menu()
   return post_down
 
 
-# TODO: is correct messages
-def get_redirect_all_traffic() -> RedirectAllTraffic:
-  return RedirectAllTraffic(
-    yes_no_menu(
-      "Please enter if all IPv4 traffic from this peer should be redirected:"),
-    yes_no_menu(
-      "Please enter if all IPv6 traffic from this peer should be redirected:"))
+def get_redirect_all_traffic(allow_ipv4: bool,
+                             allow_ipv6: bool) -> RedirectAllTraffic:
+  write_header("Redirect traffic")
+  redirect_ipv4 = False
+  redirect_ipv6 = False
+  if allow_ipv4:
+    redirect_ipv4 = yes_no_menu(
+      "Please enter if all IPv4 traffic from this peer should be redirected:")
+  if allow_ipv6:
+    redirect_ipv6 = yes_no_menu(
+      "Please enter if all IPv6 traffic from this peer should be redirected:")
+  leave_menu()
+  return RedirectAllTraffic(redirect_ipv4, redirect_ipv6)
 
 
 def get_input(msg: str) -> str:
