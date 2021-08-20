@@ -118,13 +118,11 @@ def edit_peer_connections(w: WireUI, site_name: str):
       additional_allowed_ips = peer_old.additional_allowed_ips
 
     # If a peer now has outgoing connections, ask for persistent_keep_alive and redirect_all_traffic
-    if peer_old.persistent_keep_alive == -1:
-      persistent_keep_alive = get_persistent_keep_alive()
-    else:
-      persistent_keep_alive = peer_old.persistent_keep_alive
     if not peer_old.outgoing_connected_peers and ct.get_outgoing_connected_peers(
         p):
       print_message(0, f"Collecting properties of peer {p} (outgoing)...")
+      if peer_old.persistent_keep_alive == -1:
+        persistent_keep_alive = get_persistent_keep_alive()
       if peer_old.redirect_all_traffic == None:
         redirect_all_traffic = get_redirect_all_traffic()
       else:
@@ -143,6 +141,7 @@ def edit_peer_connections(w: WireUI, site_name: str):
         ct.get_ingoing_connected_peers(p),
         endpoint,
         port,
+        peer_old.dns,
         persistent_keep_alive,
         redirect_all_traffic,
         peer_old.post_up,
