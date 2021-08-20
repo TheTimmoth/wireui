@@ -1,9 +1,6 @@
 from .config import delete_config
 from .config import write_config
 
-from .io_ import edit_connection_table
-from .io_ import edit_dict
-from .io_ import edit_string
 from .io_ import read_file
 from .io_ import write_file
 
@@ -34,9 +31,6 @@ from .wireui import WireUI
 
 __all__ = [
   "delete_config",
-  "edit_connection_table",
-  "edit_dict",
-  "edit_string",
   "get_keys",
   "read_file",
   "write_config",

@@ -4,11 +4,11 @@ from .console import print_message
 from .console import print_error
 
 from .shared import create_wireguard_config
+from .shared import edit_connection_table
+from .shared import edit_string
 from .shared import get_new_peer_properties
 from .shared import yes_no_menu
 
-from ..library import edit_connection_table
-from ..library import edit_string
 from ..library import ConnectionTable
 from ..library import Peer
 from ..library import Site
@@ -39,14 +39,14 @@ def add_site(w: WireUI) -> str:
   if allow_ipv6:
     ip.append(_get_ip_network(6))
 
-  dns = _get_dns()
+  dns = _get_dns(w)
 
-  peer_names = _get_peer_names()
+  peer_names = _get_peer_names(w)
 
   # Editing of the connection table
   ct = ConnectionTable(peer_names)
   input("Please edit the connection table. Press ENTER to continue...")
-  ct = edit_connection_table(ct)
+  ct = edit_connection_table(w, ct)
 
   # Create peer list
   peers = []
@@ -115,7 +115,7 @@ def _get_ip_network(ip_version: int = 4) -> str:
       return str(ip_network.with_prefixlen)
 
 
-def _get_dns() -> list:
+def _get_dns(w: WireUI) -> list:
   while True:
     dns = input(
       "Please enter the name of the dns servers (use ' ' as separation): ")
@@ -132,7 +132,7 @@ def _get_dns() -> list:
     while not correct:
       correct = yes_no_menu("Is everything correct?")
       if not correct:
-        dns = edit_string(dns)
+        dns = edit_string(w, dns)
         dns = _convert_str_to_list(dns)
         print_message(0, "The following peers has been detected:")
         dns = _convert_list_to_str(dns)
@@ -140,7 +140,7 @@ def _get_dns() -> list:
     return dns
 
 
-def _get_peer_names() -> tuple:
+def _get_peer_names(w: WireUI) -> tuple:
   # Get peer names
   peer_names = input(
     "Please enter the name of the peers (use ' ' as separation): ")
@@ -154,7 +154,7 @@ def _get_peer_names() -> tuple:
   while not correct:
     correct = yes_no_menu("Is everything correct?")
     if not correct:
-      peer_names = edit_string(peer_names)
+      peer_names = edit_string(w, peer_names)
       peer_names = _convert_str_to_list(peer_names)
       print_message(0, "The following peers has been detected:")
       peer_names = _convert_list_to_str(peer_names)

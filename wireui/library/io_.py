@@ -1,12 +1,4 @@
-import io
-import json
 import os
-import subprocess
-import tempfile
-
-from .typedefs import ConnectionTable
-from .typedefs import JsonDict
-from .typedefs import JSONDecodeError
 
 
 def write_file(path: str, s: str = "") -> str:
@@ -34,44 +26,6 @@ def read_file(path: str) -> str:
 #     return JsonDict(read_file)
 #   except JSONDecodeError as e:
 #     raise e
-
-
-def edit_string(s: str = "") -> str:
-  with tempfile.NamedTemporaryFile(mode='w+t', delete=False) as f:
-    n = f.name
-    f.write(s)
-
-  subprocess.run(["editor", n])
-  s = read_file(n)
-
-  os.remove(n)
-
-  return s
-
-
-def edit_dict(d: JsonDict = JsonDict()) -> JsonDict:
-  valid = False
-  while not valid:
-    try:
-      d = JsonDict(edit_string(str(d)))
-    except json.JSONDecodeError:
-      pass
-    else:
-      valid = True
-  return d
-
-
-def edit_connection_table(ct: ConnectionTable) -> ConnectionTable:
-  s = ""
-  valid = False
-  while not valid:
-    try:
-      ct.update(edit_string(str(ct) + s))
-    except ValueError as e:
-      s = f"\n{e}"
-    else:
-      valid = True
-  return ct
 
 
 def prepare_directory(path: str):

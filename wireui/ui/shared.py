@@ -1,10 +1,15 @@
 import ipaddress
+import os
+import subprocess
+import tempfile
 
 from .console import print_error, print_message
 
-from ..library import edit_string
 from ..library import ConnectionTable
+from ..library import JSONDecodeError
+from ..library import JsonDict
 from ..library import Peer
+from ..library import read_file
 from ..library import RedirectAllTraffic
 from ..library import WireUI
 
@@ -177,3 +182,41 @@ def get_input(msg: str) -> str:
       if s:
         s = s[:-1]
   return s
+
+
+def edit_string(w: WireUI, s: str = "") -> str:
+  with tempfile.NamedTemporaryFile(mode='w+t', delete=False) as f:
+    n = f.name
+    f.write(s)
+
+  subprocess.run([w.get_setting("editor"), n])
+  s = read_file(n)
+
+  os.remove(n)
+
+  return s
+
+
+def edit_dict(w: WireUI, d: JsonDict = JsonDict()) -> JsonDict:
+  valid = False
+  while not valid:
+    try:
+      d = JsonDict(edit_string(w, str(d)))
+    except JSONDecodeError:
+      pass
+    else:
+      valid = True
+  return d
+
+
+def edit_connection_table(w: WireUI, ct: ConnectionTable) -> ConnectionTable:
+  s = ""
+  valid = False
+  while not valid:
+    try:
+      ct.update(edit_string(w, str(ct) + s))
+    except ValueError as e:
+      s = f"\n{e}"
+    else:
+      valid = True
+  return ct

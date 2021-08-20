@@ -5,6 +5,7 @@
 import ipaddress
 
 from os import path
+import os
 from typing import NamedTuple
 from typing import Optional
 
@@ -76,6 +77,8 @@ class WireUI():
       "wg_config_path": "./wg",
       "editor": "editor",
     }
+    if os.name in ("dos", "nt"):
+      default_settings["editor"] = "notepad"
     if settings_path:
       self.settings_path = settings_path
       try:

@@ -15,11 +15,15 @@ setuptools.setup(
   packages=setuptools.find_packages(),
   keywords=["wireguard", "wireui"],
   license_file="./LICENSE",
-  platforms="Linux",
+  platforms=[
+    "Linux",
+    "Windows",
+  ],
   classifiers=[
     "Programming Language :: Python :: 3.6",
     "License :: OSI Approved :: MIT License",
     "Operating System :: POSIX :: Linux",
+    'Operating System :: Microsoft :: Windows',
     "Development Status :: 3 - Alpha",
     "Environment :: Console",
   ],

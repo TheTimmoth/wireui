@@ -4,6 +4,7 @@ from .console import print_error
 from .console import print_message
 
 from .shared import create_wireguard_config
+from .shared import edit_connection_table
 from .shared import get_additional_allowed_ips
 from .shared import get_endpoint
 from .shared import get_new_peer_properties
@@ -12,7 +13,6 @@ from .shared import get_persistent_keep_alive
 from .shared import get_redirect_all_traffic
 from .shared import yes_no_menu
 
-from ..library import edit_connection_table
 from ..library import ConnectionTable
 from ..library import Peer
 from ..library import PeerDoesExistError
@@ -88,7 +88,7 @@ def edit_peer_connections(w: WireUI, site_name: str):
 
   # Edit table
   input("Please edit the connection table. Press ENTER to continue...")
-  ct = edit_connection_table(ct)
+  ct = edit_connection_table(w, ct)
 
   # Update peers with changed connection table
   for p in peer_names:
