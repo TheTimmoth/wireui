@@ -28,7 +28,7 @@ Release 0.1.0a3
   - [UI] Existing site and peer names are shown more frequently (where it makes sense)
   - [Library] [UI] Clarification of some variable names and descriptions
 * Known bugs and limitations:
-  - interface is not stable and can change drastically in future releases
+  - Interface is not stable and can change drastically in future releases
 
 Release 0.1.0a4
 * Fixed:
@@ -37,7 +37,7 @@ Release 0.1.0a4
   - [Library] Integrity check was unaware of values with multiple allowed datatypes (e.g. "NoneType" and "bool")
   - [Library] Recreation of the keys for a peer removed all other attributes from this peer
 * Known bugs and limitations:
-  - interface is not stable and can change drastically in future releases
+  - Interface is not stable and can change drastically in future releases
 
 Release 0.1.0a5
 * Added:
@@ -50,4 +50,17 @@ Release 0.1.0a5
 * Changed:
   -
 * Known bugs and limitations:
-  - interface is not stable and can change drastically in future releases
+  - Interface is not stable and can change drastically in future releases
+
+Release 0.1.0a6
+* Added:
+  - [Library] [UI] Add option to set custom DNS servers
+  - [UI] Add checks for endpoint name
+  - [UI] Rework of the UI
+* Fixed:
+  -
+* Changed:
+  -
+* Known bugs and limitations:
+  - Interface is not stable and can change drastically in future releases
+  - Check for endpoint name does currently not work with IPv6 addresses
