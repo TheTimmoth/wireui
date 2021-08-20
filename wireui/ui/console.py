@@ -65,7 +65,7 @@ def yes_no_menu(string) -> bool:
 
 def clear_screen():
   if os.name in ("nt", "dos"):
-    subprocess.run("cls")
+    os.system("cls")
   else:
     subprocess.run("clear")
 
