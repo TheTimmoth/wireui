@@ -6,22 +6,23 @@ import os
 import subprocess
 import sys
 
-from . import strings
+from .elements import vline
+from ..library import strings
 
-_menu_list = []
-_verbosity = 2
+__menu_list = []
+__verbosity = 2
 
 
 def set_verbosity(verbosity: int = 0):
   """Sets the verbosity level of the console output"""
 
-  global _verbosity
+  global __verbosity
 
   assert isinstance(
     verbosity,
     int), f"verbosity should be <class \'int\'> and not {str(type(verbosity))}"
   assert verbosity >= 0, f"verbosity should be >= 0 and not {verbosity}"
-  _verbosity = verbosity
+  __verbosity = verbosity
 
 
 def print_message(verbosity: int, *args, **kwargs):
@@ -30,7 +31,7 @@ def print_message(verbosity: int, *args, **kwargs):
   The message is only printed, if verbosity is greater than the setted verbosity
   """
 
-  if verbosity <= _verbosity:
+  if verbosity <= __verbosity:
     print(*args, file=sys.stdout, **kwargs)
 
 
@@ -40,7 +41,7 @@ def print_error(verbosity: int, *args, **kwargs):
   The message is only printed, if verbosity is greater than the setted verbosity
   """
 
-  if verbosity <= _verbosity:
+  if verbosity <= __verbosity:
     print(*args, file=sys.stderr, **kwargs)
 
 
@@ -71,26 +72,26 @@ def clear_screen():
 
 
 def leave_menu():
-  _menu_list.pop()
+  __menu_list.pop()
 
 
 def write_header(name: str = ""):
   clear_screen()
 
   print_message(0, f"{strings.name} - {strings.version}")
-  print_message(0, strings.get_vline())
+  print_message(0, vline())
 
   # It is assumed that all later menus are closed if name is already in list
-  if name in _menu_list:
-    while _menu_list.pop() != name:
+  if name in __menu_list:
+    while __menu_list.pop() != name:
       pass
 
   if name:
-    _menu_list.append(name)
+    __menu_list.append(name)
 
   s = ""
-  for m in _menu_list:
+  for m in __menu_list:
     s += f"{m} --> "
   s = s[:-5]
   print_message(0, s)
-  print_message(0, strings.get_vline())
+  print_message(0, vline())

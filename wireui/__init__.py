@@ -11,6 +11,7 @@ from .library import WireUI
 from .ui import run_ui
 
 __all__ = [
+  "run_ui",
   "DataIntegrityError",
   "PeerDoesExistError",
   "PeerDoesNotExistError",

@@ -146,7 +146,7 @@ class ConnectionTable(Table):
         else:
           self.setitem(i, j, s[i][j])
 
-    self._check_integrity()
+    self.__check_integrity()
 
   def get_outgoing_connected_peers(self, name: str) -> list:
     """ Get a list of all peers that peer 'name' has an outgoing connection to """
@@ -200,7 +200,7 @@ class ConnectionTable(Table):
 
     return l
 
-  def _check_integrity(self):
+  def __check_integrity(self):
     """ Check if the table has invalid entries """
 
     msg = ""

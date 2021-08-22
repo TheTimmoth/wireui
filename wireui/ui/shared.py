@@ -4,18 +4,24 @@
 
 import ipaddress
 import os
-import re
 import subprocess
 import tempfile
 
-from . import strings
+from .console import leave_menu
+from .console import print_error
+from .console import print_list
+from .console import print_message
+from .console import write_header
+from .console import yes_no_menu
 
-from .console import leave_menu, print_error, print_list, print_message, write_header, yes_no_menu
-
+from ..library import check_endpoint
+from ..library import check_port
 from ..library import ConnectionTable
+from ..library import EndpointError
 from ..library import JSONDecodeError
 from ..library import JsonDict
 from ..library import Peer
+from ..library import PortError
 from ..library import read_file
 from ..library import RedirectAllTraffic
 from ..library import WireUI
@@ -38,8 +44,8 @@ def get_new_peer_properties(w: WireUI, site_name: str, peer_name: str,
 
   # If peer has ingoing connections endpoint and port is needed
   if ct.get_ingoing_connected_peers(peer_name):
-    endpoint = get_endpoint()
-    port = get_port()
+    endpoint = get_endpoint(ct.get_ingoing_connected_peers(peer_name))
+    port = get_port(ct.get_ingoing_connected_peers(peer_name))
     additional_allowed_ips = get_additional_allowed_ips(allow_ipv4, allow_ipv6)
   else:
     endpoint = ""
@@ -52,7 +58,7 @@ def get_new_peer_properties(w: WireUI, site_name: str, peer_name: str,
     redirect_all_traffic = get_redirect_all_traffic(allow_ipv4, allow_ipv6)
   else:
     persistent_keep_alive = -1
-    redirect_all_traffic = None
+    redirect_all_traffic = RedirectAllTraffic(ipv4=False, ipv6=False)
 
   #Get post up and down
   post_up = get_post_up()
@@ -80,23 +86,23 @@ def get_new_peer_properties(w: WireUI, site_name: str, peer_name: str,
   )
 
 
-def get_endpoint() -> str:
+def get_endpoint(ingoing_connected_peers: list) -> str:
   while True:
     write_header("Getting endpoint address")
     endpoint = input("Please enter the URL or IP address of the server: ")
-    # TODO: check for valid ipv6 address
-    if re.match(
-        r"^(?:[a-zA-Z0-9]+[.])*[a-z]{2,12}$|^(?:[0-9]{1,3}[.]){3}[0-9]{1,3}$",
-        endpoint) is None:
-      if yes_no_menu("Endpoint may be not valid. Ignore?"):
-        break
+    try:
+      check_endpoint(endpoint=endpoint,
+                     ingoing_connected_peers=ingoing_connected_peers)
+    except EndpointError as e:
+      input(str(e) + "\nPress Enter to continue...")
+      continue
     else:
       break
   leave_menu()
   return endpoint
 
 
-def get_port() -> int:
+def get_port(ingoing_connected_peers: list) -> int:
   while True:
     write_header("Enter port number")
     port = input("Please enter the port the adapter should listen on: ")
@@ -106,8 +112,10 @@ def get_port() -> int:
       print_error(0, "Error: The port was not a valid integer.")
       continue
     else:
-      if port <= 1 or port > 65535:
-        print_error(0, "Error: The port should be between 1 and 65535")
+      try:
+        check_port(port, ingoing_connected_peers=ingoing_connected_peers)
+      except PortError as e:
+        input(str(e) + "\nPress Enter to continue...")
         continue
     leave_menu()
     return port

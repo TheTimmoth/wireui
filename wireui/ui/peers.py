@@ -26,8 +26,8 @@ from ..library import WireUI
 def add_peer(w: WireUI, site_name: str):
   write_header("Create new peer")
 
-  peer_name = _get_peer_name(w, site_name, should_exist=False)
-  allow_ipv4, allow_ipv6 = w.get_networks(site_name)
+  peer_name = __get_peer_name(w, site_name, should_exist=False)
+  allow_ipv4, allow_ipv6, _ = w.get_networks(site_name)
   dns = w.get_dns(site_name)
   try:
     w.add_peer(
@@ -47,7 +47,7 @@ def add_peer(w: WireUI, site_name: str):
 # TODO: add the new features --> transition this function to edit_peer
 def rekey_peer(w: WireUI, site_name: str):
   write_header("Rekey a peer")
-  peer_name = _get_peer_name(w, site_name, should_exist=True)
+  peer_name = __get_peer_name(w, site_name, should_exist=True)
   try:
     w.rekey_peer(site_name, peer_name)
   except PeerDoesNotExistError:
@@ -59,7 +59,7 @@ def rekey_peer(w: WireUI, site_name: str):
 
 def delete_peer(w: WireUI, site_name: str):
   write_header("Delete a peer")
-  peer_name = _get_peer_name(w, site_name, should_exist=True)
+  peer_name = __get_peer_name(w, site_name, should_exist=True)
   if yes_no_menu(f"Do you really want to delete peer {peer_name}?"):
     try:
       w.delete_peer(site_name, peer_name)
@@ -97,21 +97,21 @@ def edit_peer_connections(w: WireUI, site_name: str):
   # Update peers with changed connection table
   for p in peer_names:
     peer_old = w.get_peer(site_name, p)
+    allow_ipv4, allow_ipv6, _ = w.get_networks(site_name)
 
     # If a peer now has ingoing connections, ask for endpoint and port
     if not peer_old.ingoing_connected_peers and ct.get_ingoing_connected_peers(
         p):
       write_header(f"Peer {p} (ingoing)")
       if peer_old.endpoint == "":
-        endpoint = get_endpoint()
+        endpoint = get_endpoint(ct.get_ingoing_connected_peers(p))
       else:
         endpoint = peer_old.endpoint
       if peer_old.port == 0:
-        port = get_port()
+        port = get_port(ct.get_ingoing_connected_peers(p))
       else:
         port = peer_old.port
       if peer_old.additional_allowed_ips == []:
-        allow_ipv4, allow_ipv6 = w.get_networks(site_name)
         additional_allowed_ips = get_additional_allowed_ips(
           allow_ipv4, allow_ipv6)
       else:
@@ -128,10 +128,7 @@ def edit_peer_connections(w: WireUI, site_name: str):
       write_header(f"Peer {p} (outgoing)")
       if peer_old.persistent_keep_alive == -1:
         persistent_keep_alive = get_persistent_keep_alive()
-      if peer_old.redirect_all_traffic == None:
-        redirect_all_traffic = get_redirect_all_traffic(allow_ipv4, allow_ipv6)
-      else:
-        redirect_all_traffic = peer_old.redirect_all_traffic
+      redirect_all_traffic = get_redirect_all_traffic(allow_ipv4, allow_ipv6)
       leave_menu()
     else:
       persistent_keep_alive = peer_old.persistent_keep_alive
@@ -158,10 +155,10 @@ def edit_peer_connections(w: WireUI, site_name: str):
   create_wireguard_config(w, site_name)
 
 
-def _get_peer_name(w: WireUI, site_name: str, should_exist: bool) -> str:
+def __get_peer_name(w: WireUI, site_name: str, should_exist: bool) -> str:
   while True:
     write_header("Get peer name")
-    _list_peers(w, site_name)
+    __list_peers(w, site_name)
     peer_name = input("Please enter the name of the peer: ")
     exist = w.peer_exists(site_name, peer_name)
     if (should_exist and exist) or (not should_exist and not exist):
@@ -174,7 +171,7 @@ def _get_peer_name(w: WireUI, site_name: str, should_exist: bool) -> str:
     leave_menu()
 
 
-def _list_peers(w: WireUI, site_name: str) -> int:
+def __list_peers(w: WireUI, site_name: str) -> int:
   peers = w.get_peer_names(site_name)
   if peers:
     print_message(0, "The following peers already exist:")
