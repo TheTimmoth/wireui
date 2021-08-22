@@ -75,3 +75,13 @@ Release 0.1.0b1
   - [Library] [UI] Move integrity checks from UI into Library (backported from 0.2.0a1)
 * Known bugs and limitations:
   - Interface is not stable and can change drastically in future releases
+
+Release 0.1.0b2
+* Added:
+  -
+* Fixed:
+  - [Library] Check for wrong default setting "editor" on Windows systems
+* Changed:
+  -
+* Known bugs and limitations:
+  -

@@ -29,7 +29,7 @@ version_dict = {
   "0.1.3": 4,
 }
 
-settings_latest_version = "0.1.1"
+settings_latest_version = "0.1.2"
 site_latest_version = "0.1.3"
 
 
@@ -245,6 +245,11 @@ def check_imported_settings(settings: Settings) -> Settings:
       else:
         settings["wg_exec"] = "wg"
       settings["file_version"] = "0.1.1"
+    # Update routines for config_version 0.1.1
+    if settings["file_version"] == "0.1.1":
+      if os.name in ["nt", "dos"] and qsettings["editor"] == "editor":
+        settings["editor"] = "C:\\Windows\\System32\\notepad.exe"
+      settings["file_version"] = "0.1.2"
   elif version_dict[
       settings["file_version"]] > version_dict[settings_latest_version]:
     raise DataIntegrityError(
@@ -252,8 +257,6 @@ def check_imported_settings(settings: Settings) -> Settings:
     )
 
   # Data integrity check
-
-  # Flags
 
   # Check keys
   __check_key(settings, "verbosity", "key", "settings", [int], "int")
