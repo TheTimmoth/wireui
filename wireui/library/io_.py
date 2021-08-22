@@ -34,10 +34,10 @@ def prepare_directory(path: str):
   if not os.path.isdir(path):
     os.makedirs(path)
   else:
-    _clean_directory(path)
+    __clean_directory(path)
 
 
-def _clean_directory(path: str):
+def __clean_directory(path: str):
   files = os.listdir(path)
   for f in files:
     if os.path.isfile(os.path.join(path, f)):
@@ -48,5 +48,5 @@ def delete_directory(path: str):
   """ Clears existing config files in a directory """
 
   if os.path.isdir(path):
-    _clean_directory(path)
+    __clean_directory(path)
     os.rmdir(path)

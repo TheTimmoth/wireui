@@ -1,11 +1,17 @@
 from .dicts import JSONDecodeError
 from .dicts import JsonDict
 
+from .exceptions import AdditionalAllowedIPError
 from .exceptions import DataIntegrityError
+from .exceptions import DNSError
+from .exceptions import EndpointError
+from .exceptions import IPNetworkError
 from .exceptions import KeyDoesExistError
 from .exceptions import KeyDoesNotExistError
+from .exceptions import PeerConnectionError
 from .exceptions import PeerDoesExistError
 from .exceptions import PeerDoesNotExistError
+from .exceptions import PortError
 from .exceptions import SettingDoesExistError
 from .exceptions import SettingDoesNotExistError
 from .exceptions import SiteDoesExistError
@@ -25,17 +31,23 @@ from .sites import Sites
 from .tables import ConnectionTable
 
 __all__ = [
+  "AdditionalAllowedIPError",
   "ConnectionTable",
   "DataIntegrityError",
+  "DNSError",
+  "EndpointError",
+  "IPNetworkError",
   "JSONDecodeError",
   "JsonDict",
   "Keys",
   "KeyDoesExistError",
   "KeyDoesNotExistError",
+  "PeerConnectionError",
   "PeerItems",
   "PeerDoesExistError",
   "PeerDoesNotExistError",
   "Peers",
+  "PortError",
   "RedirectAllTraffic",
   "SettingDoesExistError",
   "SettingDoesNotExistError",

@@ -9,14 +9,17 @@ import os
 from typing import NamedTuple
 from typing import Optional
 
-# from .io_ import JSONDecodeError
-
 from .config import delete_config
 from .config import write_config
 
+from .integrity import check_additional_allowed_ips
+from .integrity import check_dns
+from .integrity import check_endpoint
+from .integrity import check_imported_settings
+from .integrity import check_imported_sites
+from .integrity import check_ip_networks
+from .integrity import check_port
 from .integrity import check_wireguard
-from .integrity import check_settings_integrity
-from .integrity import check_site_integrity
 from .integrity import settings_latest_version
 from .integrity import site_latest_version
 
@@ -24,7 +27,9 @@ from .io_ import read_file
 from .io_ import write_file
 
 from .keys import get_keys
+from .keys import set_wg_exec
 
+from .typedefs import DataIntegrityError
 from .typedefs import JSONDecodeError
 from .typedefs import PeerItems
 from .typedefs import PeerDoesExistError
@@ -41,7 +46,7 @@ from .typedefs import Sites
 
 class Site(NamedTuple):
   name: str
-  ip_networks: str
+  ip_networks: list
   dns: list
   peers: list
 
@@ -69,16 +74,34 @@ class Peer(NamedTuple):
 
 class WireUI():
   """ Class for managing wireguard config files """
+
+  __instance = None
+
+  @staticmethod
+  def get_instance(settings_path: Optional[str] = None):
+    """ Static access method. """
+    if WireUI.__instance == None:
+      WireUI(settings_path)
+    return WireUI.__instance
+
   def __init__(self, settings_path: Optional[str] = None):
+    """ Virtually private constructor. """
+    if WireUI.__instance != None:
+      raise Exception("This class is a singleton!")
+    else:
+      WireUI.__instance = self
+
     default_settings = {
       "file_version": settings_latest_version,
       "verbosity": 0,
       "sites_file_path": "./sites.json",
       "wg_config_path": "./wg",
       "editor": "editor",
+      "wg_exec": "wg",
     }
     if os.name in ("dos", "nt"):
       default_settings["editor"] = "notepad"
+      default_settings["wg_exec"] = "C:\\Program Files\\WireGuard\\wg.exe"
     if settings_path:
       self.settings_path = settings_path
       try:
@@ -90,9 +113,10 @@ class WireUI():
 
     self._sites = Sites(read_file(self._settings.get("sites_file_path")))
 
+    check_imported_settings(self._settings)
+    set_wg_exec(self.get_setting("wg_exec"))
     check_wireguard()
-    check_settings_integrity(self._settings)
-    check_site_integrity(self._sites)
+    check_imported_sites(self._sites)
 
   def get_sites(self) -> list:
     """ Get all existing sites """
@@ -105,44 +129,60 @@ class WireUI():
     if site.name in self._sites:
       raise SiteDoesExistError(site.name)
 
-    peers = Peers()
-    for p in site.peers:
+    self.__check_site(site)
 
-      if p.redirect_all_traffic:
-        redirect_all_traffic = RedirectAllTraffic_({
-          "ipv4":
-          p.redirect_all_traffic.ipv4,
-          "ipv6":
-          p.redirect_all_traffic.ipv6
-        })
-      else:
-        redirect_all_traffic = None
+    self._sites[site.name] = self.__get_site_items(site)
 
-      try:
-        peers[p.name] = PeerItems({
-          "keys": get_keys(),
-          "additional_allowed_ips": p.additional_allowed_ips,
-          "outgoing_connected_peers": p.outgoing_connected_peers,
-          "main_peer": p.main_peer,
-          "ingoing_connected_peers": p.ingoing_connected_peers,
-          "endpoint": p.endpoint,
-          "port": p.port,
-          "dns": site.dns,
-          "persistent_keep_alive": p.persistent_keep_alive,
-          "redirect_all_traffic": redirect_all_traffic,
-          "post_up": p.post_up,
-          "post_down": p.post_down,
-          "ipv6_routing_fix": p.ipv6_routing_fix,
-        })
-      except PeerDoesExistError as e:
-        raise e
+  def get_site(self, site_name: str) -> Site:
+    if site_name not in self._sites:
+      raise SiteDoesNotExistError(site_name)
 
-    self._sites[site.name] = SiteItems({
-      "config_version": site_latest_version,
-      "ip_networks": site.ip_networks,
-      "dns": site.dns,
-      "peers": peers
-    })
+    peers = []
+    for p in self._sites[site_name]["peers"]:
+      peers.append(
+        Peer(
+          name=p,
+          additional_allowed_ips=self._sites[site_name]["peers"][p]
+          ["additional_allowed_ips"],
+          outgoing_connected_peers=self._sites[site_name]["peers"][p]
+          ["outgoing_connected_peers"],
+          main_peer=self._sites[site_name]["peers"][p]["main_peer"],
+          ingoing_connected_peers=self._sites[site_name]["peers"][p]
+          ["ingoing_connected_peers"],
+          endpoint=self._sites[site_name]["peers"][p]["endpoint"],
+          port=self._sites[site_name]["peers"][p]["port"],
+          dns=self._sites[site_name]["peers"][p]["dns"],
+          persistent_keep_alive=self._sites[site_name]["peers"][p]
+          ["persistent_keep_alive"],
+          redirect_all_traffic=RedirectAllTraffic(
+            self._sites[site_name]["peers"][p]["redirect_all_traffic"]["ipv4"],
+            self._sites[site_name]["peers"][p]["redirect_all_traffic"]["ipv6"],
+          ),
+          post_up=self._sites[site_name]["peers"][p]["post_up"],
+          post_down=self._sites[site_name]["peers"][p]["post_down"],
+          ipv6_routing_fix=self._sites[site_name]["peers"][p]
+          ["ipv6_routing_fix"],
+        ))
+
+    return Site(
+      name=site_name,
+      ip_networks=self._sites[site_name]["ip_networks"],
+      dns=self._sites[site_name]["dns"],
+      peers=peers,
+    )
+
+  def set_site(self, site: Site):
+    """ Change the properties of a site """
+
+    if site.name not in self._sites:
+      raise SiteDoesNotExistError(site.name)
+
+    try:
+      self.__check_site(site)
+    except DataIntegrityError as e:
+      raise e
+    else:
+      self._sites[site.name] = self.__get_site_items(site)
 
   def delete_site(self, name: str):
     """ Delete a site """
@@ -179,44 +219,15 @@ class WireUI():
     if peer.name in self._sites[site_name]["peers"]:
       raise PeerDoesExistError(peer.name)
 
-    if peer.redirect_all_traffic:
-      redirect_all_traffic = RedirectAllTraffic_({
-        "ipv4":
-        peer.redirect_all_traffic.ipv4,
-        "ipv6":
-        peer.redirect_all_traffic.ipv6
-      })
-    else:
-      redirect_all_traffic = None
+    allow_ipv4, allow_ipv6, _ = self.get_networks(site_name=site_name)
 
-    self._sites[site_name]["peers"][peer.name] = PeerItems({
-      "keys":
-      get_keys(),
-      "additional_allowed_ips":
-      peer.additional_allowed_ips,
-      "outgoing_connected_peers":
-      peer.outgoing_connected_peers,
-      "main_peer":
-      peer.main_peer,
-      "ingoing_connected_peers":
-      peer.ingoing_connected_peers,
-      "endpoint":
-      peer.endpoint,
-      "port":
-      peer.port,
-      "dns":
-      self._sites[site_name]["dns"],
-      "persistent_keep_alive":
-      peer.persistent_keep_alive,
-      "redirect_all_traffic":
-      redirect_all_traffic,
-      "post_up":
-      peer.post_up,
-      "post_down":
-      peer.post_down,
-      "ipv6_routing_fix":
-      peer.ipv6_routing_fix,
-    })
+    self.__check_peer(peer, allow_ipv4=allow_ipv4, allow_ipv6=allow_ipv6)
+
+    self._sites[site_name]["peers"][peer.name] = self.__get_peer_items(
+      site_name=site_name,
+      peer=peer,
+      create_new_keys=True,
+    )
 
   def get_peer(self, site_name: str, peer_name: str) -> Peer:
     """ Get a peer from a site """
@@ -262,44 +273,15 @@ class WireUI():
     if peer.name not in self._sites[site_name]["peers"]:
       raise PeerDoesNotExistError(peer.name)
 
-    if peer.redirect_all_traffic:
-      redirect_all_traffic = RedirectAllTraffic_({
-        "ipv4":
-        peer.redirect_all_traffic.ipv4,
-        "ipv6":
-        peer.redirect_all_traffic.ipv6
-      })
-    else:
-      redirect_all_traffic = None
+    allow_ipv4, allow_ipv6, _ = self.get_networks(site_name=site_name)
 
-    self._sites[site_name]["peers"][peer.name] = PeerItems({
-      "keys":
-      self._sites[site_name]["peers"][peer.name]["keys"],
-      "additional_allowed_ips":
-      peer.additional_allowed_ips,
-      "outgoing_connected_peers":
-      peer.outgoing_connected_peers,
-      "main_peer":
-      peer.main_peer,
-      "ingoing_connected_peers":
-      peer.ingoing_connected_peers,
-      "endpoint":
-      peer.endpoint,
-      "port":
-      peer.port,
-      "dns":
-      peer.dns,
-      "persistent_keep_alive":
-      peer.persistent_keep_alive,
-      "redirect_all_traffic":
-      redirect_all_traffic,
-      "post_up":
-      peer.post_up,
-      "post_down":
-      peer.post_down,
-      "ipv6_routing_fix":
-      peer.ipv6_routing_fix,
-    })
+    self.__check_peer(peer, allow_ipv4=allow_ipv4, allow_ipv6=allow_ipv6)
+
+    self._sites[site_name]["peers"][peer.name] = self.__get_peer_items(
+      site_name=site_name,
+      peer=peer,
+      create_new_keys=False,
+    )
 
   def delete_peer(self, site_name: str, peer_name: str):
     """ Delete a peer from a site """
@@ -347,7 +329,7 @@ class WireUI():
         allow_ipv4 = True
       elif v == 6:
         allow_ipv6 = True
-    return allow_ipv4, allow_ipv6
+    return allow_ipv4, allow_ipv6, self._sites[site_name]["ip_networks"]
 
   def get_dns(self, site_name: str) -> list:
     return self._sites[site_name]["dns"]
@@ -388,3 +370,101 @@ class WireUI():
 
   def write_sites_to_file(self):
     write_file(self._settings["sites_file_path"], str(self._sites))
+
+  def __get_site_items(self, site: Site) -> SiteItems:
+    peers = Peers()
+    for p in site.peers:
+      try:
+        peers[p.name] = PeerItems({
+          "keys":
+          get_keys(),
+          "additional_allowed_ips":
+          p.additional_allowed_ips,
+          "outgoing_connected_peers":
+          p.outgoing_connected_peers,
+          "main_peer":
+          p.main_peer,
+          "ingoing_connected_peers":
+          p.ingoing_connected_peers,
+          "endpoint":
+          p.endpoint,
+          "port":
+          p.port,
+          "dns":
+          site.dns,
+          "persistent_keep_alive":
+          p.persistent_keep_alive,
+          "redirect_all_traffic":
+          RedirectAllTraffic_({
+            "ipv4": p.redirect_all_traffic.ipv4,
+            "ipv6": p.redirect_all_traffic.ipv6
+          }),
+          "post_up":
+          p.post_up,
+          "post_down":
+          p.post_down,
+          "ipv6_routing_fix":
+          p.ipv6_routing_fix,
+        })
+      except PeerDoesExistError as e:
+        raise e
+
+    return SiteItems({
+      "config_version": site_latest_version,
+      "ip_networks": site.ip_networks,
+      "dns": site.dns,
+      "peers": peers
+    })
+
+  def __get_peer_items(self, site_name: str, peer: Peer,
+                       create_new_keys: bool) -> PeerItems:
+
+    redirect_all_traffic = RedirectAllTraffic_({
+      "ipv4":
+      peer.redirect_all_traffic.ipv4,
+      "ipv6":
+      peer.redirect_all_traffic.ipv6
+    })
+
+    if create_new_keys:
+      keys = get_keys()
+    else:
+      keys = self._sites[site_name]["peers"][peer.name]["keys"]
+
+    return PeerItems({
+      "keys": keys,
+      "additional_allowed_ips": peer.additional_allowed_ips,
+      "outgoing_connected_peers": peer.outgoing_connected_peers,
+      "main_peer": peer.main_peer,
+      "ingoing_connected_peers": peer.ingoing_connected_peers,
+      "endpoint": peer.endpoint,
+      "port": peer.port,
+      "dns": self._sites[site_name]["dns"],
+      "persistent_keep_alive": peer.persistent_keep_alive,
+      "redirect_all_traffic": redirect_all_traffic,
+      "post_up": peer.post_up,
+      "post_down": peer.post_down,
+      "ipv6_routing_fix": peer.ipv6_routing_fix,
+    })
+
+  def __check_site(self, site: Site) -> bool:
+    # Check IP networks
+    allow_ipv4, allow_ipv6 = check_ip_networks(site.ip_networks)
+
+    #Check DNS
+    check_dns(site.dns, allow_ipv4=allow_ipv4, allow_ipv6=allow_ipv6)
+
+    # Check peers
+    for p in site.peers:
+      self.__check_peer(peer=p, allow_ipv4=allow_ipv4, allow_ipv6=allow_ipv6)
+
+  def __check_peer(self, peer: Peer, allow_ipv4: bool, allow_ipv6: bool):
+    check_additional_allowed_ips(
+      additional_allowed_ips=peer.additional_allowed_ips,
+      allow_ipv4=allow_ipv4,
+      allow_ipv6=allow_ipv6)
+    check_dns(dns=peer.dns, allow_ipv4=allow_ipv4, allow_ipv6=allow_ipv6)
+    check_endpoint(endpoint=peer.endpoint,
+                   ingoing_connected_peers=peer.ingoing_connected_peers)
+    check_port(port=peer.port,
+               ingoing_connected_peers=peer.ingoing_connected_peers)

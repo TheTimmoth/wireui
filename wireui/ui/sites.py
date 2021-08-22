@@ -1,5 +1,3 @@
-import ipaddress
-
 from .console import leave_menu
 from .console import print_message
 from .console import print_error
@@ -12,8 +10,13 @@ from .shared import edit_connection_table
 from .shared import edit_string
 from .shared import get_new_peer_properties
 
+from ..library import check_dns
+from ..library import check_ip_networks
+from ..library import convert_list_to_str
+from ..library import convert_str_to_list
 from ..library import ConnectionTable
-from ..library import Peer
+from ..library import DNSError
+from ..library import IPNetworkError
 from ..library import Site
 from ..library import SiteDoesExistError
 from ..library import SiteDoesNotExistError
@@ -25,26 +28,11 @@ def add_site(w: WireUI) -> str:
 
   site_name = get_site_name(w, should_exist=False)
 
-  ip = []
-  ipv4_network = ""
-  ipv6_network = ""
-  while not ipv4_network and not ipv6_network:
-    allow_ipv4, ipv4_network = _get_ip_network(4)
-    allow_ipv6, ipv6_network = _get_ip_network(6)
-    if not ipv4_network and not ipv6_network:
-      write_header("Collecting IP informations")
-      input(
-        "You have to enter at least one ipv4 or ipv6 network!\nPress ENTER to continue..."
-      )
-      leave_menu()
-  if allow_ipv4:
-    ip.append(ipv4_network)
-  if allow_ipv6:
-    ip.append(ipv6_network)
+  allow_ipv4, allow_ipv6, ip = __get_ip_networks()
 
-  dns = _get_dns(w, allow_ipv4, allow_ipv6)
+  dns = __get_dns(w, allow_ipv4, allow_ipv6)
 
-  peer_names = _get_peer_names(w)
+  peer_names = __get_peer_names(w)
 
   # Editing of the connection table
   ct = ConnectionTable(peer_names)
@@ -88,7 +76,7 @@ def delete_site(w: WireUI):
 def get_site_name(w: WireUI, should_exist: bool) -> str:
   while True:
     write_header("Enter site name")
-    _list_sites(w)
+    __list_sites(w)
     name = input("Please enter the name of the site: ")
     exist = w.site_exists(name)
     if (should_exist and exist) or (not should_exist and not exist):
@@ -98,10 +86,11 @@ def get_site_name(w: WireUI, should_exist: bool) -> str:
       print_error(0, f"Error: {name} does not exist.")
     elif not should_exist and exist:
       print_error(0, f"Error: {name} does already exist.")
+    input("Press ENTER to continue...")
     leave_menu()
 
 
-def _list_sites(w: WireUI):
+def __list_sites(w: WireUI):
   sites = w.get_sites()
   if sites:
     print_message(0, "The following sites do exist:")
@@ -110,58 +99,64 @@ def _list_sites(w: WireUI):
     print_message(0, "There are currently no sites.")
 
 
-def _get_ip_network(ip_version: int = 4) -> tuple[bool, str]:
-  write_header(f"Collecting IPv{ip_version} informations")
-  allow_ip = yes_no_menu(f"Do you want to use IPv{ip_version}?")
-  ip_network = ""
-  while allow_ip:
-    write_header()
-    if ip_version == 4:
-      s = "Please enter the IPv4 network the site should use.\n(For example \"10.0.0.0/24\"): "
-    else:
-      s = "Please enter the IPv6 network the site should use.\n(For example \"fd01::/64\"): "
+def __get_ip_networks() -> tuple[bool, bool, list]:
+  write_header(f"Collecting IP information")
+  allow_ip = {}
+  ip_networks = []
+  for v in [4, 6]:
+    write_header(f"IPv{v}")
+    allow_ip[v] = yes_no_menu(f"Do you want to use IPv{v}?")
+    while allow_ip[v]:
+      write_header()
+      if v == 4:
+        s = "Please enter the IPv4 network the site should use.\n(For example \"10.0.0.0/24\"): "
+      else:
+        s = "Please enter the IPv6 network the site should use.\n(For example \"fd01::/64\"): "
 
-    ip_network = input(s)
+      ip_networks.append(input(s))
 
-    try:
-      ip_network = ipaddress.ip_network(ip_network)
-    except ValueError as e:
-      print_error(0, "Error: Input is not a valid IP network.")
-      print_error(2, e)
-      continue
-    if ip_version != ip_network.version:
-      print_error(
-        0, "Error: You entered an IPv" + ip_network.version +
-        " network, but an IPv" + ip_version + " network is expected.")
-      continue
-    ip_network = str(ip_network.with_prefixlen)
-    break
+      try:
+        check_ip_networks(ip_networks)
+      except IPNetworkError as e:
+        ip_networks.pop()
+        input(str(e) + "\n Press ENTER to retry...")
+        continue
+      else:
+        leave_menu()
+        break
 
   leave_menu()
 
-  return (allow_ip, ip_network)
+  if not ip_networks:
+    allow_ip[4], allow_ip[6], ip_networks = __get_ip_networks()
+
+  return (allow_ip[4], allow_ip[6], ip_networks)
 
 
-def _get_dns(w: WireUI, allow_ipv4: bool, allow_ipv6: bool) -> list:
-  while True:
+def __get_dns(w: WireUI, allow_ipv4: bool, allow_ipv6: bool) -> list:
+  correct = False
+  dns = []
+  while not dns or not correct:
     write_header("Collecting DNS informations")
-    dns = input(
-      "Please enter the name of the dns servers (use ' ' as separation): ")
-    dns = _convert_str_to_list(dns)
-    _check_dns(dns, allow_ipv4, allow_ipv6)
-    print_message(0, "The following DNS entries have been detected:")
+    if not dns:
+      dns = input(
+        "Please enter the name of the dns servers (use ' ' as separation): ")
+      dns = convert_str_to_list(dns)
 
-    correct = False
-    while dns and not correct:
-      write_header()
+      for a in dns:
+        try:
+          check_dns(dns=[a], allow_ipv4=allow_ipv4, allow_ipv6=allow_ipv6)
+        except DNSError as e:
+          input(str(e) + "\nPress Enter to continue...")
+          dns.remove(a)
+    else:
+      print_message(0, "The following DNS entries have been detected:")
       print_list(dns)
       correct = yes_no_menu("Is everything correct?")
       if not correct:
-        dns = _convert_list_to_str(dns)
+        dns = convert_list_to_str(dns)
         dns = edit_string(w, dns)
-        dns = _convert_str_to_list(dns)
-        _check_dns(dns, allow_ipv4, allow_ipv6)
-        print_message(0, "The following DNS entries have been detected:")
+        dns = convert_str_to_list(dns)
       if not dns:
         break
     if dns:
@@ -170,28 +165,12 @@ def _get_dns(w: WireUI, allow_ipv4: bool, allow_ipv6: bool) -> list:
   return dns
 
 
-def _check_dns(dns: list, allow_ipv4: bool, allow_ipv6: bool):
-  for a in dns:
-    try:
-      dns_ip_version = ipaddress.ip_address(a).version
-    except ValueError:
-      dns.remove(a)
-    else:
-      if (not allow_ipv4 and dns_ip_version == 4) or (not allow_ipv6
-                                                      and dns_ip_version == 6):
-        remove = yes_no_menu(
-          f"DNS Server {a} is IPv{dns_ip_version}, but IPv4 is not allowed.\nThis may not work correctly.\nShould the server be removed?"
-        )
-        if remove:
-          dns.remove(a)
-
-
-def _get_peer_names(w: WireUI) -> tuple:
+def __get_peer_names(w: WireUI) -> tuple:
   write_header("Collecing peer names")
   # Get peer names
   peer_names = input(
     "Please enter the name of the peers (use ' ' as separation): ")
-  peer_names = _convert_str_to_list(peer_names)
+  peer_names = convert_str_to_list(peer_names)
 
   # Check names
   print_message(0, "The following peers has been detected:")
@@ -202,32 +181,9 @@ def _get_peer_names(w: WireUI) -> tuple:
     print_list(peer_names)
     correct = yes_no_menu("Is everything correct?")
     if not correct:
-      peer_names = _convert_list_to_str(peer_names)
+      peer_names = convert_list_to_str(peer_names)
       peer_names = edit_string(w, peer_names)
-      peer_names = _convert_str_to_list(peer_names)
+      peer_names = convert_str_to_list(peer_names)
       print_message(0, "The following peers has been detected:")
   leave_menu()
   return peer_names
-
-
-def _convert_str_to_list(s: str) -> list:
-  """ Convert a str to a list.
-
-  Doubled entires are removed and the list is sorted. """
-
-  s = list(set(s.split()))
-  s.sort()
-  return s
-
-
-def _convert_list_to_str(l: list) -> str:
-  """ Convert a list to a str.
-
-  Elements are separated with ' '"""
-
-  s = ""
-  for e in l:
-    s += f"{e} "
-  s = s[:-1]
-
-  return s

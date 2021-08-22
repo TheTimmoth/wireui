@@ -17,7 +17,7 @@ from .io_ import write_file
 def write_config(site: SiteItems, wg_config_path: str) -> list:
   """ Create a json config file from the site parameters """
 
-  peer_addresses = _get_addresses_for_peers(
+  peer_addresses = __get_addresses_for_peers(
     site["peers"], [ipaddress.ip_network(n) for n in site["ip_networks"]])
 
   prepare_directory(wg_config_path)
@@ -26,7 +26,7 @@ def write_config(site: SiteItems, wg_config_path: str) -> list:
   for p in site["peers"]:
     created_files.append(
       write_file(os.path.join(wg_config_path, f"wg_{p}.conf"),
-                 _get_peer_config(p, site["peers"], peer_addresses)))
+                 __get_peer_config(p, site["peers"], peer_addresses)))
   return created_files
 
 
@@ -36,29 +36,29 @@ def delete_config(site_name: str, wg_config_path: str):
   delete_directory(os.path.join(wg_config_path))
 
 
-def _get_peer_config(interface_peer_name: str, peers: Peers,
-                     peer_addresses: dict):
+def __get_peer_config(interface_peer_name: str, peers: Peers,
+                      peer_addresses: dict):
   """ Write config file for a peer """
-  s = _get_interface_section(interface_peer_name, peers[interface_peer_name],
-                             peer_addresses)
+  s = __get_interface_section(interface_peer_name, peers[interface_peer_name],
+                              peer_addresses)
 
   for p in peers:
     if p != interface_peer_name and (
       (p in peers[interface_peer_name]["ingoing_connected_peers"]) or
       (p in peers[interface_peer_name]["outgoing_connected_peers"])):
-      s += _get_peer_section(p, peers[p], interface_peer_name,
-                             peers[interface_peer_name], peer_addresses)
+      s += __get_peer_section(p, peers[p], interface_peer_name,
+                              peers[interface_peer_name], peer_addresses)
 
   return s
 
 
-def _get_interface_section(name: str, peer: PeerItems,
-                           peer_addresses: dict) -> str:
+def __get_interface_section(name: str, peer: PeerItems,
+                            peer_addresses: dict) -> str:
   """ Get the interface section of a config file for a peer"""
 
   s = f"# {name}\n"
   s += "[Interface]\n"
-  s += _get_address_line(name, peer_addresses)
+  s += __get_address_line(name, peer_addresses)
   if peer["ingoing_connected_peers"]:
     s += f"ListenPort = {peer['port']}\n"
   # TODO: firewall rules
@@ -94,8 +94,8 @@ def _get_interface_section(name: str, peer: PeerItems,
   return s
 
 
-def _get_peer_section(name: str, peer: PeerItems, interface_peer_name: str,
-                      interface_peer: PeerItems, peer_addresses: dict):
+def __get_peer_section(name: str, peer: PeerItems, interface_peer_name: str,
+                       interface_peer: PeerItems, peer_addresses: dict):
   """ Get the peer section of a config file """
 
   s = f"# {name}\n"
@@ -122,7 +122,7 @@ def _get_peer_section(name: str, peer: PeerItems, interface_peer_name: str,
   else:
     # Peer has to be outgoing_connected_peer
     s += f"PresharedKey = " + interface_peer["keys"]["psk"] + "\n"
-  s += _get_allowed_ips_line(
+  s += __get_allowed_ips_line(
     peer_name=name,
     peer=peer,
     interface_peer=interface_peer,
@@ -132,7 +132,7 @@ def _get_peer_section(name: str, peer: PeerItems, interface_peer_name: str,
   return s
 
 
-def _get_addresses_for_peers(peers: tuple, ip_networks: list):
+def __get_addresses_for_peers(peers: tuple, ip_networks: list):
   """ Create ip addresses for each peer """
 
   peer_addresses = {}
@@ -146,7 +146,7 @@ def _get_addresses_for_peers(peers: tuple, ip_networks: list):
   return peer_addresses
 
 
-def _get_address_line(peer_name: str, peer_addresses: dict):
+def __get_address_line(peer_name: str, peer_addresses: dict):
   """ Create the Address line """
 
   address_line = "Address = "
@@ -157,8 +157,8 @@ def _get_address_line(peer_name: str, peer_addresses: dict):
   return address_line[:-2] + "\n"
 
 
-def _get_allowed_ips_line(peer_name: str, peer: PeerItems,
-                          interface_peer: PeerItems, peer_addresses: dict):
+def __get_allowed_ips_line(peer_name: str, peer: PeerItems,
+                           interface_peer: PeerItems, peer_addresses: dict):
   """ Create the AllowedIPs line """
 
   allowed_ips_line = "AllowedIPs = "

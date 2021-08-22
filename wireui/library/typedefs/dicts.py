@@ -20,12 +20,12 @@ class JsonDict(UserDict):
   def __init__(self,
                initialdata: Union[dict, str] = {},
                defaults: Union[dict, str] = {}):
-    d = self._getdict(defaults)
-    d.update(self._getdict(initialdata))
+    d = self.__getdict(defaults)
+    d.update(self.__getdict(initialdata))
     super().__init__(d)
 
   @classmethod
-  def _getdict(cls, data: Union[dict, str]) -> dict:
+  def __getdict(cls, data: Union[dict, str]) -> dict:
     if isinstance(data, dict):
       return data
     elif isinstance(data, str):

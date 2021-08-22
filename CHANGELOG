@@ -64,3 +64,14 @@ Release 0.1.0a6
 * Known bugs and limitations:
   - Interface is not stable and can change drastically in future releases
   - Check for endpoint name does currently not work with IPv6 addresses
+
+Release 0.1.0b1
+* Added:
+  -
+* Fixed:
+  - [Library] Check for endpoint name now works with IPv6 address (backported from 0.2.0a1)
+* Changed:
+  - [Library] [UI] Rework of program structure (backported from 0.2.0a1)
+  - [Library] [UI] Move integrity checks from UI into Library (backported from 0.2.0a1)
+* Known bugs and limitations:
+  - Interface is not stable and can change drastically in future releases
