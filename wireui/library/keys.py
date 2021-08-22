@@ -8,37 +8,43 @@ import collections
 from .typedefs import Keys
 from .typedefs import WireguardNotFoundError
 
+__wg_exec = ""
+
 
 def get_keys() -> Keys:
   """ Creates private, public and preshared key """
 
-  privkey = _get_privkey()
+  privkey = __get_privkey()
   return Keys({
     "privkey": privkey,
-    "pubkey": _get_pubkey(privkey),
-    "psk": _get_psk(),
+    "pubkey": __get_pubkey(privkey),
+    "psk": __get_psk(),
   })
 
+def set_wg_exec(wg_exec: str):
+  global __wg_exec
+  __wg_exec = wg_exec
 
-def _get_privkey() -> str:
+
+def __get_privkey() -> str:
   """ Get a private key from wg """
 
-  return _run(["wg", "genkey"])
+  return __run([__wg_exec, "genkey"])
 
 
-def _get_pubkey(private: str) -> str:
+def __get_pubkey(private: str) -> str:
   """ Get a public key from wg """
 
-  return _run(["wg", "pubkey"], input=private.encode("utf-8"))
+  return __run([__wg_exec, "pubkey"], input=private.encode("utf-8"))
 
 
-def _get_psk() -> str:
+def __get_psk() -> str:
   """ Get a presharedkey from wg """
 
-  return _run(["wg", "genpsk"])
+  return __run([__wg_exec, "genpsk"])
 
 
-def _run(*args, **kwargs) -> str:
+def __run(*args, **kwargs) -> str:
   """ Run a program on the OS and collect output """
 
   try:

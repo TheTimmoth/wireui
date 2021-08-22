@@ -8,9 +8,12 @@ from .library import SiteDoesNotExistError
 from .library import WireguardNotFoundError
 from .library import WireUI
 
+from .gui import run_gui
 from .ui import run_ui
 
 __all__ = [
+  "run_gui",
+  "run_ui",
   "DataIntegrityError",
   "PeerDoesExistError",
   "PeerDoesNotExistError",

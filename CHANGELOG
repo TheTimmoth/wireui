@@ -64,3 +64,16 @@ Release 0.1.0a6
 * Known bugs and limitations:
   - Interface is not stable and can change drastically in future releases
   - Check for endpoint name does currently not work with IPv6 addresses
+
+Release 0.2.0a1
+* Added:
+  - [UI] GUI added
+* Fixed:
+  - [Library] Check for endpoint name now works with IPv6 address
+* Changed:
+  - [Library] [UI] Rework of program structure to support different UIs
+  - [Library] [UI] Move integrity checks from UI into Library
+* Known bugs and limitations:
+  - Interface is basically stable but details can change in future releases
+  - GUI has very limited functions, which will improve in future releases
+    -> Please use "sites.json" file to change site and peer properties

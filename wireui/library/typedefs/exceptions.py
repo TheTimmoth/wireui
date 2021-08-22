@@ -48,3 +48,27 @@ class WireguardNotFoundError(Error):
 
 class DataIntegrityError(Error):
   pass
+
+
+class IPNetworkError(DataIntegrityError):
+  pass
+
+
+class DNSError(DataIntegrityError):
+  pass
+
+
+class AdditionalAllowedIPError(DataIntegrityError):
+  pass
+
+
+class PeerConnectionError(DataIntegrityError):
+  pass
+
+
+class EndpointError(DataIntegrityError):
+  pass
+
+
+class PortError(DataIntegrityError):
+  pass

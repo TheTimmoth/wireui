@@ -1,5 +1,3 @@
-from . import strings
-
 from .console import clear_screen
 from .console import leave_menu
 from .console import print_error
@@ -17,6 +15,7 @@ from .sites import add_site
 from .sites import delete_site
 from .sites import get_site_name
 
+from ..library import strings
 from ..library import WireUI
 
 
@@ -48,9 +47,9 @@ def entrypoint_menu(w: WireUI):
       create_wireguard_config(w, get_site_name(w, should_exist=True))
     elif choice == "a":
       leave_menu()
-      _about()
+      __about()
     elif choice == "q":
-      _exit(0)
+      __exit(0)
 
     print_message(0, "")
 
@@ -86,12 +85,12 @@ def site_menu(w: WireUI, site_name: str):
       leave = True
       leave_menu()
     elif choice == "q":
-      _exit(0)
+      __exit(0)
 
     print_message(0, "")
 
 
-def _about():
+def __about():
   write_header("About")
   print_message(0, strings.name)
   print_message(0, strings.description)
@@ -102,7 +101,7 @@ def _about():
   leave_menu()
 
 
-def _exit(i):
+def __exit(i):
   clear_screen()
   print_message(0, "Bye")
   exit(i)
