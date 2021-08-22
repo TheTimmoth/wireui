@@ -100,7 +100,7 @@ class WireUI():
       "wg_exec": "wg",
     }
     if os.name in ("dos", "nt"):
-      default_settings["editor"] = "notepad"
+      default_settings["editor"] = "C:\\Windows\\System32\\notepad.exe"
       default_settings["wg_exec"] = "C:\\Program Files\\WireGuard\\wg.exe"
     if settings_path:
       self.settings_path = settings_path
