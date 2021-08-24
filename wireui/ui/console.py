@@ -7,6 +7,7 @@ import subprocess
 import sys
 
 from typing import AnyStr
+from typing import Dict
 from typing import List
 from typing import Optional
 
@@ -75,6 +76,21 @@ def yes_no_menu(string: str, default: Optional[bool] = None) -> bool:
       choice = False
       valid = True
   return choice
+
+
+def options_menu(options: Dict[str, str],
+                 default: Optional[str] = None) -> str:
+  while True:
+    write_header()
+    print_message(0, "What do you want to do?")
+    for k in options:
+      print_message(0, f"{k}     {options[k]}")
+    if default:
+      choice = input(f" Please choose an option: [{default}] ") or default
+    else:
+      choice = input(f" Please choose an option: ")
+    if choice in options:
+      return choice
 
 
 def clear_screen():

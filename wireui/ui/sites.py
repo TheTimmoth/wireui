@@ -11,6 +11,8 @@ from .console import print_list
 from .console import yes_no_menu
 from .console import write_header
 
+from .peers import edit_peer
+
 from .results import check_dns_result, check_ip_network_result
 
 from .shared import create_wireguard_config
@@ -51,7 +53,7 @@ def add_site(w: WireUI) -> str:
   # Editing of the connection table
   ct = ConnectionTable(peer_names)
   input("Please edit the connection table. Press ENTER to continue...")
-  ct = edit_connection_table(w, ct)
+  ct = edit_connection_table(ct)
 
   # Create peer list
   peers = []
@@ -109,6 +111,11 @@ def edit_site():
     Site(name=site_name, ip_networks=ip_networks, dns=dns, peers=s.peers))
 
   create_wireguard_config(w, site_name)
+
+  write_header()
+  if yes_no_menu("Do you want to edit peer properties?", False):
+    leave_menu()
+    edit_peer(site_name)
 
   leave_menu()
 
@@ -196,8 +203,9 @@ def __get_ip_networks(old_ip_networks: Optional[__IPNetworks] = __IPNetworks(
         input(s + "Press ENTER to retry...")
         continue
       else:
-        leave_menu()
         break
+
+    leave_menu()
 
   leave_menu()
 
@@ -218,17 +226,16 @@ def __get_dns(w: WireUI,
     write_header("Collecting DNS informations")
     correct = False
     if not dns:
-      dns = input(
-        "Please enter the name of the dns servers (use ' ' as separation): ")
-      dns = convert_str_to_list(dns)
+      dns = convert_str_to_list(
+        input(
+          "Please enter the name of the dns servers (use ' ' as separation): ")
+      )
     else:
       print_message(0, "The following DNS entries are set:")
       print_list(dns)
       correct = yes_no_menu("Is everything correct?")
       if not correct:
-        dns = convert_list_to_str(dns)
-        dns = edit_string(w, dns)
-        dns = convert_str_to_list(dns)
+        dns = convert_str_to_list(edit_string(convert_list_to_str(dns)))
     if dns:
       write_header()
       s = check_dns_result(
@@ -260,9 +267,8 @@ def __get_peer_names(w: WireUI) -> Tuple[str, ...]:
     print_list(peer_names)
     correct = yes_no_menu("Is everything correct?")
     if not correct:
-      peer_names = convert_list_to_str(peer_names)
-      peer_names = edit_string(w, peer_names)
-      peer_names = convert_str_to_list(peer_names)
+      peer_names = convert_str_to_list(
+        edit_string(convert_list_to_str(peer_names)))
       print_message(0, "The following peers has been detected:")
   leave_menu()
   return peer_names

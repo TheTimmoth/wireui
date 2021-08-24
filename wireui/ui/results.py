@@ -1,8 +1,10 @@
-from ..library import MESSAGE_LEVEL
+from ..library import AAIPs_MESSAGE_TYPE
 from ..library import DNS_MESSAGE_TYPE
 from ..library import ENDPOINT_MESSAGE_TYPE
 from ..library import IP_NETWORK_MESSAGE_TYPE
+from ..library import MESSAGE_LEVEL
 from ..library import PORT_MESSAGE_TYPE
+from ..library import AAIPsResult
 from ..library import DNSResult
 from ..library import EndpointResult
 from ..library import IPNetworkResult
@@ -57,6 +59,25 @@ def check_port_result(r: PortResult) -> str:
       if msg.get_message().message_type == PORT_MESSAGE_TYPE.PORT_INVALID:
         s += __get_message_level(msg)
         s += f"{msg.get_message().port} is of range. Port must be within 1-65535\n"
+  return s
+
+
+def check_aaips_result(r: AAIPsResult) -> str:
+  s = ""
+  if r:
+    for msg in r:
+      if msg.get_message(
+      ).message_type == AAIPs_MESSAGE_TYPE.IP_NETWORK_INVALID:
+        s += __get_message_level(msg)
+        s += f"{msg.get_message().ip_network} is not a valid IP network.\n"
+      elif msg.get_message(
+      ).message_type == AAIPs_MESSAGE_TYPE.IPv4_NOT_ACTIVATED:
+        s += __get_message_level(msg)
+        s += f"{msg.get_message().ip_network} is IPv4, but IPv4 is not allowed.\n"
+      elif msg.get_message(
+      ).message_type == AAIPs_MESSAGE_TYPE.IPv6_NOT_ACTIVATED:
+        s += __get_message_level(msg)
+        s += f"{msg.get_message().ip_network} is IPv6, but IPv6 is not allowed.\n"
   return s
 
 

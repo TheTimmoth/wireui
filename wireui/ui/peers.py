@@ -1,5 +1,4 @@
-import ipaddress
-
+from typing import Optional
 from .console import leave_menu
 from .console import print_error
 from .console import print_list
@@ -7,40 +6,60 @@ from .console import print_message
 from .console import write_header
 from .console import yes_no_menu
 
+from .shared import change_existing_peer_properties
 from .shared import create_wireguard_config
-from .shared import edit_connection_table
 from .shared import edit_peer_connections
-from .shared import get_additional_allowed_ips
-from .shared import get_endpoint
 from .shared import get_new_peer_properties
-from .shared import get_port
-from .shared import get_persistent_keep_alive
-from .shared import get_redirect_all_traffic
+from .shared import get_populated_connection_table
 
 from ..library import ConnectionTable
-from ..library import Peer
 from ..library import PeerDoesExistError
 from ..library import PeerDoesNotExistError
 from ..library import WireUI
 
 
-def add_peer(w: WireUI, site_name: str):
+def add_peer(w: WireUI, site_name: str, peer_name: Optional[str] = None):
   write_header("Create new peer")
 
-  peer_name = __get_peer_name(w, site_name, should_exist=False)
+  if not peer_name:
+    peer_name = __get_peer_name(w, site_name, should_exist=False)
+
   allow_ipv4, allow_ipv6, _ = w.get_networks(site_name)
   dns = w.get_dns(site_name)
-  try:
-    w.add_peer(
-      site_name,
-      get_new_peer_properties(w, site_name, peer_name, dns,
-                              ConnectionTable([peer_name]), allow_ipv4,
-                              allow_ipv6))
-  except PeerDoesExistError:
-    print_error(0, "Error: Peer does already exist. Do nothing...")
-  else:
-    edit_peer_connections(w, site_name)
-    create_wireguard_config(w, site_name)
+
+  w.add_peer(
+    site_name,
+    get_new_peer_properties(w, site_name, peer_name, dns,
+                            ConnectionTable([peer_name]), allow_ipv4,
+                            allow_ipv6))
+
+  edit_peer_connections(w, site_name)
+  create_wireguard_config(w, site_name)
+
+  leave_menu()
+
+
+def edit_peer(site_name: str):
+  write_header("Edit peer")
+
+  w = WireUI.get_instance()
+
+  peer_name = __get_peer_name(w, site_name, should_exist=True)
+  allow_ipv4, allow_ipv6, _ = w.get_networks(site_name)
+  dns = w.get_dns(site_name)
+
+  w.set_peer(
+    site_name,
+    change_existing_peer_properties(
+      w, site_name, peer_name, dns,
+      get_populated_connection_table(site_name=site_name), allow_ipv4,
+      allow_ipv6))
+
+  create_wireguard_config(w, site_name)
+
+  write_header()
+  if yes_no_menu("Do you want to edit another peer", False):
+    edit_peer(site_name)
 
   leave_menu()
 

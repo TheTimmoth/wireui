@@ -184,7 +184,7 @@ def check_peer_integrity(peers: Peers, site_name: str, allow_ipv4: bool,
                   allow_ipv4=allow_ipv4,
                   allow_ipv6=allow_ipv6)
     if not r.get_success():
-      raise DNSError(f"Site: {s} - Key: \"dns\"\n" + str(r))
+      raise DNSError(f"Site: {site_name} - Key: \"dns\"\n" + str(r))
 
     # Check ingoing and outgoing_connected_peers and main_peer
     # If peer p2 is outgoing_connected_peer of peer p1, p1 has to be ingoing_connected of peer p2.
@@ -398,7 +398,7 @@ def check_additional_allowed_ips(
     default_additional_allowed_ips: Optional[List[str]] = []) -> AAIPsResult:
 
   r = AAIPsResult()
-  for a in additional_allowed_ips:
+  for a in list(additional_allowed_ips):
     try:
       v = ipaddress.ip_network(a).version
     except ValueError:
@@ -407,18 +407,29 @@ def check_additional_allowed_ips(
           MESSAGE_LEVEL.ERROR,
           AAIPsMessageContent(AAIPs_MESSAGE_TYPE.IP_NETWORK_INVALID,
                               ip_network=a)))
+      additional_allowed_ips.remove(a)
     if v == 4 and not allow_ipv4:
       r.append(
         AAIPsMessage(
           MESSAGE_LEVEL.ERROR,
           AAIPsMessageContent(AAIPs_MESSAGE_TYPE.IPv4_NOT_ACTIVATED,
                               ip_network=a)))
+      additional_allowed_ips.remove(a)
     elif v == 6 and not allow_ipv6:
       r.append(
         AAIPsMessage(
           MESSAGE_LEVEL.ERROR,
           AAIPsMessageContent(AAIPs_MESSAGE_TYPE.IPv6_NOT_ACTIVATED,
                               ip_network=a)))
+      additional_allowed_ips.remove(a)
+  if not additional_allowed_ips:
+    additional_allowed_ips = default_additional_allowed_ips
+    r.append(
+      AAIPsMessage(
+        MESSAGE_LEVEL.INFORMATION,
+        AAIPsMessageContent(AAIPs_MESSAGE_TYPE.SET_DEFAULT,
+                            ip_network=additional_allowed_ips)))
+
   return r
 
 
@@ -512,7 +523,8 @@ PEER_CONNECTIONS_MESSAGE_TYPE = __PeerConnectionsMessageType(
 
 class PeerConnectionsMessageContent(MessageContent):
   message_type: int
-  ip_network: str
+  peer_1: str
+  peer_2: str
 
 
 PeerConnectionsMessage = Message[PeerConnectionsMessageContent]
@@ -533,7 +545,8 @@ def check_peer_connections(peer_name: str,
                                message=PeerConnectionsMessageContent(
                                  message_type=PEER_CONNECTIONS_MESSAGE_TYPE.
                                  OUTGOING_PEER_NON_EXISTENCE,
-                               )))
+                                 peer_1=peer_name,
+                                 peer_2=outgoing_peer)))
     # Check if p is an ingoing_peer in outgoing_peer
     if peer_name not in peers[outgoing_peer]["ingoing_connected_peers"]:
       r.append(
@@ -541,7 +554,8 @@ def check_peer_connections(peer_name: str,
                                message=PeerConnectionsMessageContent(
                                  message_type=PEER_CONNECTIONS_MESSAGE_TYPE.
                                  OUTGOING_PEER_NOT_INGOING,
-                               )))
+                                 peer_1=peer_name,
+                                 peer_2=outgoing_peer)))
 
   # Check ingoing peers
   for ingoing_peer in peers[peer_name]["ingoing_connected_peers"]:
@@ -552,15 +566,17 @@ def check_peer_connections(peer_name: str,
                                message=PeerConnectionsMessageContent(
                                  message_type=PEER_CONNECTIONS_MESSAGE_TYPE.
                                  INGOING_PEER_NON_EXISTENCE,
-                               )))
+                                 peer_1=peer_name,
+                                 peer_2=ingoing_peer)))
     # Check if p is an outgoing_peer in ingoing_peer
     if peer_name not in peers[ingoing_peer]["outgoing_connected_peers"]:
       r.append(
         PeerConnectionsMessage(message_level=MESSAGE_LEVEL.ERROR,
                                message=PeerConnectionsMessageContent(
                                  message_type=PEER_CONNECTIONS_MESSAGE_TYPE.
-                                 INGOING_PEER_NOT_OUTGOINGE,
-                               )))
+                                 INGOING_PEER_NOT_OUTGOING,
+                                 peer_1=peer_name,
+                                 peer_2=ingoing_peer)))
 
   # Check if main_peer is present and an outgoing_peer
   if peers[peer_name]["outgoing_connected_peers"] and (
@@ -571,7 +587,8 @@ def check_peer_connections(peer_name: str,
         message_level=MESSAGE_LEVEL.ERROR,
         message=PeerConnectionsMessageContent(
           message_type=PEER_CONNECTIONS_MESSAGE_TYPE.MAIN_PEER_NOT_OUTGOING,
-        )))
+          peer_1=peer_name,
+          peer_2="")))
   return r
 
 

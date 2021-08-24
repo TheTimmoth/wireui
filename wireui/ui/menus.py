@@ -1,10 +1,11 @@
 from .console import clear_screen
 from .console import leave_menu
+from .console import options_menu
 from .console import print_error
 from .console import print_message
 from .console import write_header
 
-from .peers import add_peer
+from .peers import add_peer, edit_peer
 from .peers import delete_peer
 from .peers import rekey_peer
 
@@ -24,31 +25,40 @@ def entrypoint_menu(w: WireUI):
   while True:
     write_header("Main menu")
 
-    sites_count = len(w.get_sites())
-    print_message(0, "1: Create new site")
-    if sites_count:
-      print_message(0, "2: Edit properties of existing site")
-      print_message(0, "3: Delete existing site")
-      print_message(0, "4: Edit connection table")
-      print_message(0, "5: Recreate config files")
-    print_message(0, "a: Informations about this program")
-    print_message(0, "q: Exit")
-    choice = input("What do you want to do? ")
+    options = {
+      "1": "Create new site",
+    }
+    if len(w.get_sites()):
+      options.update({
+        "2": "Edit properties of existing site",
+        "3": "Delete existing site",
+        "4": "Edit connection table",
+        "5": "Go to the site menu",
+        "6": "Recreate config files",
+        "a": "Informations about this program",
+        "q": "Exit",
+      })
+      default = "6"
+    else:
+      default = "1"
+
+    choice = options_menu(options=options, default=default)
 
     if choice == "1":
       leave_menu()
       site_menu(w, add_site(w))
-    elif choice == "2" and sites_count:
+    elif choice == "2":
       leave_menu()
-      edit_site()
-      # site_menu(w, get_site_name(w, should_exist=True))
-    elif choice == "3" and sites_count:
+      site_menu(w, edit_site())
+    elif choice == "3":
       leave_menu()
       delete_site(w)
-    elif choice == "4" and sites_count:
+    elif choice == "4":
       leave_menu()
       edit_peer_connections(w, get_site_name(w, should_exist=True))
-    elif choice == "5" and sites_count:
+    elif choice == "5":
+      site_menu(w, get_site_name(w, True))
+    elif choice == "6":
       create_wireguard_config(w, get_site_name(w, should_exist=True))
       leave_menu()
     elif choice == "a":
@@ -70,20 +80,30 @@ def site_menu(w: WireUI, site_name: str):
     print_message(0,
                   "For full editing of peers please use the sites.json file!")
 
-    print_message(0, "1: Add peer")
-    if peers_count:
-      print_message(0, "2: Create new keys for a peer")
-      print_message(0, "3: Delete peer")
-    print_message(0, "b: Back")
-    print_message(0, "q: Exit")
-    choice = input("What do you want to do? ")
+    options = {
+      "1": "Add peer",
+    }
+    default = "1"
+    if len(w.get_peer_names(site_name)):
+      options.update({
+        "2": "Edit properties of a peer",
+        "3": "Delete peer",
+        "4": "Create new keys for a peer",
+        "b": "Back",
+        "q": "Exit",
+      })
+      default = "b"
+
+    choice = options_menu(options=options, default=default)
 
     if choice == "1":
       add_peer(w, site_name)
-    elif choice == "2" and peers_count:
-      rekey_peer(w, site_name)
-    elif choice == "3" and peers_count:
+    elif choice == "2":
+      edit_peer(site_name)
+    elif choice == "3":
       delete_peer(w, site_name)
+    elif choice == "4":
+      rekey_peer(w, site_name)
     elif choice == "b":
       leave = True
       leave_menu()
