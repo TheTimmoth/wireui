@@ -20,12 +20,12 @@ setuptools.setup(
     "Windows",
   ],
   classifiers=[
-    "Programming Language :: Python :: 3.6",
+    "Programming Language :: Python :: 3.8",
     "License :: OSI Approved :: MIT License",
     "Operating System :: POSIX :: Linux",
     'Operating System :: Microsoft :: Windows',
     "Development Status :: 3 - Alpha",
     "Environment :: Console",
   ],
-  python_requires='>=3.6',
+  python_requires='>=3.8',
 )

@@ -26,12 +26,98 @@ from ..library import read_file
 from ..library import RedirectAllTraffic
 from ..library import WireUI
 
+from .results import check_endpoint_result, check_port_result
+
 
 def create_wireguard_config(w: WireUI, site_name: str):
   created_files = w.create_wireguard_config(site_name)
   print_message(1, "The following files have been created:")
   print_list(created_files)
   print_message(0, f"{len(created_files)} file(s) have been created.")
+
+
+def edit_peer_connections(w: WireUI, site_name: str):
+  """ Edit the peer connection matrix """
+
+  write_header("Edit peer connections")
+
+  # Create an empty connection table
+  peer_names = w.get_peer_names(site_name)
+  ct = ConnectionTable(peer_names)
+
+  # Populate table with actual data
+  for i in range(len(peer_names)):
+    peer = w.get_peer(site_name, ct.row_names[i])
+    for j in range(len(peer_names)):
+      if ct.column_names[j] in peer.outgoing_connected_peers:
+        ct.setitem(i, j, 1)
+    ct.setitem(i, len(peer_names), peer.main_peer)
+
+  # Edit table
+  input("Please edit the connection table. Press ENTER to continue...")
+  ct = edit_connection_table(w, ct)
+
+  leave_menu()
+
+  # Update peers with changed connection table
+  for p in peer_names:
+    peer_old = w.get_peer(site_name, p)
+    allow_ipv4, allow_ipv6, _ = w.get_networks(site_name)
+
+    # If a peer now has ingoing connections, ask for endpoint and port
+    if not peer_old.ingoing_connected_peers and ct.get_ingoing_connected_peers(
+        p):
+      write_header(f"Peer {p} (ingoing)")
+      if peer_old.endpoint == "":
+        endpoint = get_endpoint(ct.get_ingoing_connected_peers(p))
+      else:
+        endpoint = peer_old.endpoint
+      if peer_old.port == 0:
+        port = get_port(ct.get_ingoing_connected_peers(p))
+      else:
+        port = peer_old.port
+      if peer_old.additional_allowed_ips == []:
+        additional_allowed_ips = get_additional_allowed_ips(
+          allow_ipv4, allow_ipv6)
+      else:
+        additional_allowed_ips = []
+      leave_menu()
+    else:
+      endpoint = peer_old.endpoint
+      port = peer_old.port
+      additional_allowed_ips = peer_old.additional_allowed_ips
+
+    # If a peer now has outgoing connections, ask for persistent_keep_alive and redirect_all_traffic
+    if not peer_old.outgoing_connected_peers and ct.get_outgoing_connected_peers(
+        p):
+      write_header(f"Peer {p} (outgoing)")
+      if peer_old.persistent_keep_alive == -1:
+        persistent_keep_alive = get_persistent_keep_alive()
+      redirect_all_traffic = get_redirect_all_traffic(allow_ipv4, allow_ipv6)
+      leave_menu()
+    else:
+      persistent_keep_alive = peer_old.persistent_keep_alive
+      redirect_all_traffic = peer_old.redirect_all_traffic
+
+    w.set_peer(
+      site_name,
+      Peer(
+        peer_old.name,
+        additional_allowed_ips,
+        ct.get_outgoing_connected_peers(p),
+        ct.get_main_peer(p),
+        ct.get_ingoing_connected_peers(p),
+        endpoint,
+        port,
+        peer_old.dns,
+        persistent_keep_alive,
+        redirect_all_traffic,
+        peer_old.post_up,
+        peer_old.post_down,
+        peer_old.ipv6_routing_fix,
+      ))
+
+  create_wireguard_config(w, site_name)
 
 
 def get_new_peer_properties(w: WireUI, site_name: str, peer_name: str,
@@ -90,11 +176,11 @@ def get_endpoint(ingoing_connected_peers: list) -> str:
   while True:
     write_header("Getting endpoint address")
     endpoint = input("Please enter the URL or IP address of the server: ")
-    try:
+    s = check_endpoint_result(
       check_endpoint(endpoint=endpoint,
-                     ingoing_connected_peers=ingoing_connected_peers)
-    except EndpointError as e:
-      input(str(e) + "\nPress Enter to continue...")
+                     ingoing_connected_peers=ingoing_connected_peers))
+    if s:
+      input(s + "Press Enter to continue...")
       continue
     else:
       break
@@ -112,10 +198,10 @@ def get_port(ingoing_connected_peers: list) -> int:
       print_error(0, "Error: The port was not a valid integer.")
       continue
     else:
-      try:
-        check_port(port, ingoing_connected_peers=ingoing_connected_peers)
-      except PortError as e:
-        input(str(e) + "\nPress Enter to continue...")
+      s = check_port_result(
+        check_port(port, ingoing_connected_peers=ingoing_connected_peers))
+      if s:
+        input(str(s) + "Press Enter to continue...")
         continue
     leave_menu()
     return port

@@ -78,10 +78,11 @@ Release 0.1.0b1
 
 Release 0.1.0b2
 * Added:
-  -
+  - [UI] Site properties can now be edited from within UI
 * Fixed:
   - [Library] Check for wrong default setting "editor" on Windows systems
 * Changed:
-  -
+  - [UI] Peer connections are now edited from entrypoint-menu
+  - [Library] [UI] Changed integrity checking system from error to message based
 * Known bugs and limitations:
-  -
+  - Interface is not stable and can change drastically in future releases

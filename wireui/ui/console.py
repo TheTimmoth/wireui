@@ -6,7 +6,12 @@ import os
 import subprocess
 import sys
 
+from typing import AnyStr
+from typing import List
+from typing import Optional
+
 from .elements import vline
+
 from ..library import strings
 
 __menu_list = []
@@ -45,20 +50,28 @@ def print_error(verbosity: int, *args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
 
 
-def print_list(l: list):
+def print_list(l: List[AnyStr]):
   for e in l:
     print_message(0, e, end="     ")
   print_message(0, "", end="\n")
 
 
-def yes_no_menu(string) -> bool:
+def yes_no_menu(string: str, default: Optional[bool] = None) -> bool:
   valid = False
   while not valid:
-    choice = input(string + " [y/n] ")
-    if choice == "y":
+    if default != None:
+      if default:
+        default = "y"
+      else:
+        default = "n"
+      choice = input(string +
+                     f" Please type \"y\" or \"n\": [{default}] ") or default
+    else:
+      choice = input(string + " Please type \"y\" or \"n\": ")
+    if choice == "y" or choice == True:
       choice = True
       valid = True
-    elif choice == "n":
+    elif choice == "n" or choice == False:
       choice = False
       valid = True
   return choice
