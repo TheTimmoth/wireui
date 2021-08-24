@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
   name="wireui-TheTimmoth",
-  version="0.1.0b1",
+  version="0.1.0b2",
   author="Tim Schlottmann",
   author_email="coding@timsc.de",
   description="A tool for creating and managing wireguard configs",
@@ -20,12 +20,12 @@ setuptools.setup(
     "Windows",
   ],
   classifiers=[
-    "Programming Language :: Python :: 3.6",
+    "Programming Language :: Python :: 3.8",
     "License :: OSI Approved :: MIT License",
     "Operating System :: POSIX :: Linux",
     'Operating System :: Microsoft :: Windows',
     "Development Status :: 3 - Alpha",
     "Environment :: Console",
   ],
-  python_requires='>=3.6',
+  python_requires='>=3.8',
 )

@@ -4,6 +4,9 @@
 
 import ipaddress
 import os
+from typing import List
+from typing import Optional
+from typing import Tuple
 
 from .typedefs import Keys
 from .typedefs import PeerItems
@@ -62,16 +65,15 @@ def __get_interface_section(name: str, peer: PeerItems,
   if peer["ingoing_connected_peers"]:
     s += f"ListenPort = {peer['port']}\n"
   # TODO: firewall rules
-  if peer["redirect_all_traffic"]:
-    if peer["redirect_all_traffic"]["ipv4"] and peer["redirect_all_traffic"][
-        "ipv6"]:
-      if peer["dns"]:
-        s += f"DNS = "
-        for a in peer["dns"]:
-          s += f"{a}, "
-        s = s[:-2] + "\n"
-      else:
-        s += f"DNS = 1.1.1.1, 8.8.8.8\n"
+  if peer["redirect_all_traffic"]["ipv4"] or peer["redirect_all_traffic"][
+      "ipv6"]:
+    if peer["dns"]:
+      s += f"DNS = "
+      for a in peer["dns"]:
+        s += f"{a}, "
+      s = s[:-2] + "\n"
+    else:
+      s += f"DNS = 1.1.1.1, 8.8.8.8\n"
   s += f"PrivateKey = " + peer["keys"]["privkey"] + "\n"
 
   post_up = ""

@@ -75,3 +75,17 @@ Release 0.1.0b1
   - [Library] [UI] Move integrity checks from UI into Library (backported from 0.2.0a1)
 * Known bugs and limitations:
   - Interface is not stable and can change drastically in future releases
+
+Release 0.1.0b2
+* Added:
+  - [UI] Site properties can now be edited from within UI
+  - [UI] Peer properties can now be edited from within UI
+  - [UI] Add new option menu method
+* Fixed:
+  - [Library] Check for wrong default setting "editor" on Windows systems
+* Changed:
+  - [UI] Peer connections can now be edited from main menu instead of peer menu
+  - [Library] [UI] Changed integrity checking system from error to message based
+* Known bugs and limitations:
+  - Interface is not stable and can change drastically in future releases
+  - Program crashes with cryptic error message if there is an error in one of the JSON files

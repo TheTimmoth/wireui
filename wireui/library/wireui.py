@@ -6,6 +6,7 @@ import ipaddress
 
 from os import path
 import os
+from typing import List
 from typing import NamedTuple
 from typing import Optional
 
@@ -22,6 +23,10 @@ from .integrity import check_port
 from .integrity import check_wireguard
 from .integrity import settings_latest_version
 from .integrity import site_latest_version
+from .integrity import DNS_MESSAGE_TYPE
+from .integrity import DNSMessage
+from .integrity import DNSMessageContent
+from .integrity import DNSResult
 
 from .io_ import read_file
 from .io_ import write_file
@@ -29,6 +34,7 @@ from .io_ import write_file
 from .keys import get_keys
 from .keys import set_wg_exec
 
+from .typedefs import MESSAGE_LEVEL
 from .typedefs import DataIntegrityError
 from .typedefs import JSONDecodeError
 from .typedefs import PeerItems
@@ -36,6 +42,7 @@ from .typedefs import PeerDoesExistError
 from .typedefs import PeerDoesNotExistError
 from .typedefs import Peers
 from .typedefs import RedirectAllTraffic as RedirectAllTraffic_
+from .typedefs import Result
 from .typedefs import Settings
 from .typedefs import SettingDoesNotExistError
 from .typedefs import SiteItems
@@ -100,7 +107,7 @@ class WireUI():
       "wg_exec": "wg",
     }
     if os.name in ("dos", "nt"):
-      default_settings["editor"] = "notepad"
+      default_settings["editor"] = "C:\\Windows\\System32\\notepad.exe"
       default_settings["wg_exec"] = "C:\\Program Files\\WireGuard\\wg.exe"
     if settings_path:
       self.settings_path = settings_path
@@ -129,8 +136,11 @@ class WireUI():
     if site.name in self._sites:
       raise SiteDoesExistError(site.name)
 
-    self.__check_site(site)
-
+    # results = self.__check_site(site)
+    # if results:
+    #   for r in results:
+    #     print(r)
+    # else:
     self._sites[site.name] = self.__get_site_items(site)
 
   def get_site(self, site_name: str) -> Site:
@@ -177,12 +187,13 @@ class WireUI():
     if site.name not in self._sites:
       raise SiteDoesNotExistError(site.name)
 
-    try:
-      self.__check_site(site)
-    except DataIntegrityError as e:
-      raise e
-    else:
-      self._sites[site.name] = self.__get_site_items(site)
+    # results = self.__check_site(site)
+
+    # for r in results:
+    #   if r:
+    #     raise DataIntegrityError(str(r))
+    # else:
+    self._sites[site.name] = self.__get_site_items(site)
 
   def delete_site(self, name: str):
     """ Delete a site """
@@ -221,7 +232,7 @@ class WireUI():
 
     allow_ipv4, allow_ipv6, _ = self.get_networks(site_name=site_name)
 
-    self.__check_peer(peer, allow_ipv4=allow_ipv4, allow_ipv6=allow_ipv6)
+    # self.__check_peer(peer, allow_ipv4=allow_ipv4, allow_ipv6=allow_ipv6)
 
     self._sites[site_name]["peers"][peer.name] = self.__get_peer_items(
       site_name=site_name,
@@ -275,7 +286,7 @@ class WireUI():
 
     allow_ipv4, allow_ipv6, _ = self.get_networks(site_name=site_name)
 
-    self.__check_peer(peer, allow_ipv4=allow_ipv4, allow_ipv6=allow_ipv6)
+    # self.__check_peer(peer, allow_ipv4=allow_ipv4, allow_ipv6=allow_ipv6)
 
     self._sites[site_name]["peers"][peer.name] = self.__get_peer_items(
       site_name=site_name,
@@ -447,24 +458,41 @@ class WireUI():
       "ipv6_routing_fix": peer.ipv6_routing_fix,
     })
 
-  def __check_site(self, site: Site) -> bool:
+  def __check_site(self, site: Site) -> List[Result]:
     # Check IP networks
-    allow_ipv4, allow_ipv6 = check_ip_networks(site.ip_networks)
+    res_ipn, allow_ipv4, allow_ipv6 = check_ip_networks(site.ip_networks)
 
-    #Check DNS
-    check_dns(site.dns, allow_ipv4=allow_ipv4, allow_ipv6=allow_ipv6)
+    # Check DNS
+    res_dns = check_dns(site.dns, allow_ipv4=allow_ipv4, allow_ipv6=allow_ipv6)
 
     # Check peers
+    res_peers: List[Result] = []
     for p in site.peers:
-      self.__check_peer(peer=p, allow_ipv4=allow_ipv4, allow_ipv6=allow_ipv6)
+      res_peers += self.__check_peer(peer=p,
+                                     allow_ipv4=allow_ipv4,
+                                     allow_ipv6=allow_ipv6)
+    return [res_ipn, res_dns] + res_peers
 
-  def __check_peer(self, peer: Peer, allow_ipv4: bool, allow_ipv6: bool):
-    check_additional_allowed_ips(
+  def __check_peer(self, peer: Peer, allow_ipv4: bool,
+                   allow_ipv6: bool) -> List[Result]:
+    # Check Additional allowed IPs
+    res_aaips = check_additional_allowed_ips(
       additional_allowed_ips=peer.additional_allowed_ips,
       allow_ipv4=allow_ipv4,
       allow_ipv6=allow_ipv6)
-    check_dns(dns=peer.dns, allow_ipv4=allow_ipv4, allow_ipv6=allow_ipv6)
-    check_endpoint(endpoint=peer.endpoint,
-                   ingoing_connected_peers=peer.ingoing_connected_peers)
-    check_port(port=peer.port,
-               ingoing_connected_peers=peer.ingoing_connected_peers)
+
+    # Check DNS
+    res_dns = check_dns(dns=peer.dns,
+                        allow_ipv4=allow_ipv4,
+                        allow_ipv6=allow_ipv6)
+
+    # Check endpoint
+    res_endp = check_endpoint(
+      endpoint=peer.endpoint,
+      ingoing_connected_peers=peer.ingoing_connected_peers)
+
+    # Check port
+    res_port = check_port(port=peer.port,
+                          ingoing_connected_peers=peer.ingoing_connected_peers)
+
+    return [res_aaips, res_dns, res_endp, res_port]
