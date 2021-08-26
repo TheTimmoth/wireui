@@ -8,6 +8,7 @@ import ipaddress
 from typing import List
 from typing import NamedTuple
 from typing import Optional
+from typing import Tuple
 
 from .helpers import convert_list_to_str
 from .helpers import get_default_dns
@@ -65,52 +66,73 @@ def check_imported_sites(sites: Sites) -> DataIntegrityResult:
     site_result = ResultList(s)
 
     # Check config_version
-    __check_key(sites[s], "config_version", "site", s, [str], "str")
+    r1, r2 = __check_key(sites[s], "config_version", "site", s, [str], "str")
+    site_result.append(r1)
+    site_result.append(r2)
+    if r1.get_success() and r2.get_success():
+      version_old = sites[s]["config_version"]
 
-    version_old = sites[s]["config_version"]
+      # Newer version -> Error
+      if sites[s]["config_version"] not in version_dict:
+        raise DataIntegrityError(
+          f"Site {s} is version {sites[s]['config_version']}, which is currently not supported. Latest supported version is {site_latest_version}"
+        )
 
-    # Newer version -> Error
-    if sites[s]["config_version"] not in version_dict:
-      raise DataIntegrityError(
-        f"Site {s} is version {sites[s]['config_version']}, which is currently not supported. Latest supported version is {site_latest_version}"
-      )
-
-    # Update routines for old versions
-    elif version_dict[sites[s]
-                      ["config_version"]] < version_dict[site_latest_version]:
-      # Update routines for config_version 0.1.0
-      if sites[s]["config_version"] == "0.1.0":
-        sites[s]["config_version"] = "0.1.1"
-      # Update routines for config_version 0.1.1
-      if sites[s]["config_version"] == "0.1.1":
-        sites[s]["dns"] = ["1.1.1.1", "8.8.8.8"]
-        sites[s]["config_version"] = "0.1.2"
-      # Update routines for config_version 0.1.2
-      if sites[s]["config_version"] == "0.1.2":
-        sites[s]["config_version"] = "0.1.3"
+      # Update routines for old versions
+      elif version_dict[
+          sites[s]["config_version"]] < version_dict[site_latest_version]:
+        # Update routines for config_version 0.1.0
+        if sites[s]["config_version"] == "0.1.0":
+          sites[s]["config_version"] = "0.1.1"
+        # Update routines for config_version 0.1.1
+        if sites[s]["config_version"] == "0.1.1":
+          sites[s]["dns"] = ["1.1.1.1", "8.8.8.8"]
+          sites[s]["config_version"] = "0.1.2"
+        # Update routines for config_version 0.1.2
+        if sites[s]["config_version"] == "0.1.2":
+          sites[s]["config_version"] = "0.1.3"
 
     # Data integrity check
 
     # Check ip_networks
-    __check_key(sites[s], "ip_networks", "site", s, [list], "list")
-    for n in sites[s]["ip_networks"]:
-      __check_datatype(n, "key", "ip_networks", [str], "str")
-    r, allow_ipv4, allow_ipv6 = check_ip_networks(sites[s]["ip_networks"])
-    site_result.append(r)
+    r1, r2 = __check_key(sites[s], "ip_networks", "site", s, [list], "list")
+    site_result.append(r1)
+    site_result.append(r2)
+    if r1.get_success() and r2.get_success():
+      success = True
+      for n in sites[s]["ip_networks"]:
+        r = __check_datatype(n, "key", "ip_networks", [str], "str")
+        site_result.append(r)
+        success &= r.get_success()
+      if success:
+        r, allow_ipv4, allow_ipv6 = check_ip_networks(sites[s]["ip_networks"])
+        site_result.append(r)
 
     # Check DNS servers
-    __check_key(sites[s], "dns", "site", s, [list], "list")
-    for d in sites[s]["dns"]:
-      __check_datatype(d, "key", "dns", [str], "str")
-
-    r = check_dns(dns=sites[s]["dns"],
-                  allow_ipv4=allow_ipv4,
-                  allow_ipv6=allow_ipv6)
-    site_result.append(r)
+    r1, r2 = __check_key(sites[s], "dns", "site", s, [list], "list")
+    site_result.append(r1)
+    site_result.append(r2)
+    if r1.get_success() and r2.get_success():
+      success = True
+      for d in sites[s]["dns"]:
+        r = __check_datatype(d, "key", "dns", [str], "str")
+        site_result.append(r)
+        success &= r.get_success()
+      if success:
+        r = check_dns(dns=sites[s]["dns"],
+                      allow_ipv4=allow_ipv4,
+                      allow_ipv6=allow_ipv6)
+        site_result.append(r)
 
     # Check peers
-    peer_results = check_peer_integrity(Peers(sites[s]["peers"]), s,
-                                        allow_ipv4, allow_ipv6, version_old)
+    r1, r2 = __check_key(sites[s], "peers", "peers", "s", [dict], "dict")
+    site_result.append(r1)
+    site_result.append(r2)
+    if r1.get_success() and r2.get_success():
+      peer_results = check_peer_integrity(Peers(sites[s]["peers"]), s,
+                                          allow_ipv4, allow_ipv6, version_old)
+    else:
+      peer_results = []
     data_integrity_message.site_result = site_result
     data_integrity_message.peer_results = peer_results
     data_integrity_result.setitem(data_integrity_message)
@@ -134,19 +156,22 @@ def check_peer_integrity(peers: Peers, site_name: str, allow_ipv4: bool,
         peers[p]["post_down"] = ""
         peers[p]["ipv6_routing_fix"] = False
 
-        __check_key(peers[p], "redirect_all_traffic", "peer",
-                    f"{p} (site \"{site_name}\")", [bool, None],
-                    "bool or null")
-        if peers[p]["redirect_all_traffic"] == True:
-          peers[p]["redirect_all_traffic"] = RedirectAllTraffic({
-            "ipv4": True,
-            "ipv6": True
-          })
-        elif peers[p]["redirect_all_traffic"] == False:
-          peers[p]["redirect_all_traffic"] = RedirectAllTraffic({
-            "ipv4": False,
-            "ipv6": False
-          })
+        r1, r2 = __check_key(peers[p], "redirect_all_traffic", "peer",
+                             f"{p} (site \"{site_name}\")", [bool, None],
+                             "bool or null")
+        rl.append(r1)
+        rl.append(r2)
+        if r1.get_success() and r2.get_success():
+          if peers[p]["redirect_all_traffic"] == True:
+            peers[p]["redirect_all_traffic"] = RedirectAllTraffic({
+              "ipv4": True,
+              "ipv6": True
+            })
+          elif peers[p]["redirect_all_traffic"] == False:
+            peers[p]["redirect_all_traffic"] = RedirectAllTraffic({
+              "ipv4": False,
+              "ipv6": False
+            })
         version = "0.1.1"
       if version == "0.1.1":
         peers[p]["dns"] = ["1.1.1.1", "8.8.8.8"]
@@ -162,76 +187,119 @@ def check_peer_integrity(peers: Peers, site_name: str, allow_ipv4: bool,
     # Data integrity check
 
     # Check keys
-    __check_key(peers[p], "keys", "peer", f"{p} (site \"{site_name}\")",
-                [dict], "dict")
-    for k in peers[p]["keys"]:
-      __check_key(peers[p]["keys"], k, "keys", k, [str], "str")
+    r1, r2 = __check_key(peers[p], "keys", "peer",
+                         f"{p} (site \"{site_name}\")", [dict], "dict")
+    rl.append(r1)
+    rl.append(r2)
+    if r1.get_success() and r2.get_success():
+      for k in peers[p]["keys"]:
+        r1, r2 = __check_key(peers[p]["keys"], k, "keys", k, [str], "str")
+        rl.append(r1)
+        rl.append(r2)
 
     # Check additional allowed ips
-    __check_key(peers[p], "additional_allowed_ips", "peer",
-                f"{p} (site \"{site_name}\")", [list], "list")
-    r = check_additional_allowed_ips(
-      additional_allowed_ips=peers[p]["additional_allowed_ips"],
-      allow_ipv4=allow_ipv4,
-      allow_ipv6=allow_ipv6)
-    rl.append(r)
+    r1, r2 = __check_key(peers[p], "additional_allowed_ips", "peer",
+                         f"{p} (site \"{site_name}\")", [list], "list")
+    rl.append(r1)
+    rl.append(r2)
+    if r1.get_success() and r2.get_success():
+      r = check_additional_allowed_ips(
+        additional_allowed_ips=peers[p]["additional_allowed_ips"],
+        allow_ipv4=allow_ipv4,
+        allow_ipv6=allow_ipv6)
+      rl.append(r)
 
     # Check DNS servers
-    __check_key(peers[p], "dns", "site", f"{p} (site \"{site_name}\")", [list],
-                "list")
-    for d in peers[p]["dns"]:
-      __check_datatype(d, "key", "dns", [str], "str")
-    r = check_dns(dns=peers[p]["dns"],
-                  allow_ipv4=allow_ipv4,
-                  allow_ipv6=allow_ipv6)
-    rl.append(r)
+    r1, r2 = __check_key(peers[p], "dns", "site",
+                         f"{p} (site \"{site_name}\")", [list], "list")
+    rl.append(r1)
+    rl.append(r2)
+    if r1.get_success() and r2.get_success():
+      success = True
+      for d in peers[p]["dns"]:
+        r = __check_datatype(d, "key", "dns", [str], "str")
+        rl.append(r)
+        success &= r.get_success()
+      if success:
+        r = check_dns(dns=peers[p]["dns"],
+                      allow_ipv4=allow_ipv4,
+                      allow_ipv6=allow_ipv6)
+        rl.append(r)
 
     # Check ingoing and outgoing_connected_peers and main_peer
     # If peer p2 is outgoing_connected_peer of peer p1, p1 has to be ingoing_connected of peer p2.
-    __check_key(peers[p], "outgoing_connected_peers", "peer",
-                f"{p} (site \"{site_name}\")", [list], "list")
-    __check_key(peers[p], "main_peer", "peer", f"{p} (site \"{site_name}\")",
-                [str], "str")
-    __check_key(peers[p], "ingoing_connected_peers", "peer",
-                f"{p} (site \"{site_name}\")", [list], "list")
-    r = check_peer_connections(p, peers)
-    rl.append(r)
+    r1, r2 = __check_key(peers[p], "outgoing_connected_peers", "peer",
+                         f"{p} (site \"{site_name}\")", [list], "list")
+    rl.append(r1)
+    rl.append(r2)
+    r3, r4 = __check_key(peers[p], "main_peer", "peer",
+                         f"{p} (site \"{site_name}\")", [str], "str")
+    rl.append(r3)
+    rl.append(r4)
+    r5, r6 = __check_key(peers[p], "ingoing_connected_peers", "peer",
+                         f"{p} (site \"{site_name}\")", [list], "list")
+    rl.append(r5)
+    rl.append(r6)
+    if r1.get_success() and r2.get_success() and r3.get_success(
+    ) and r4.get_success() and r5.get_success() and r6.get_success():
+      r = check_peer_connections(p, peers)
+      rl.append(r)
 
     # Check endpoint
-    __check_key(peers[p], "endpoint", "peer", f"{p} (site \"{site_name}\")",
-                [str], "str")
-    r = check_endpoint(peers[p]["endpoint"],
-                       peers[p]["ingoing_connected_peers"])
-    rl.append(r)
+    r1, r2 = __check_key(peers[p], "endpoint", "peer",
+                         f"{p} (site \"{site_name}\")", [str], "str")
+    rl.append(r1)
+    rl.append(r2)
+    if r1.get_success() and r2.get_success():
+      r = check_endpoint(peers[p]["endpoint"],
+                         peers[p]["ingoing_connected_peers"])
+      rl.append(r)
 
     # Check port
-    __check_key(peers[p], "port", "peer", f"{p} (site \"{site_name}\")", [int],
-                "int")
-    r = check_port(peers[p]["port"], peers[p]["ingoing_connected_peers"])
-    rl.append(r)
+    r1, r2 = __check_key(peers[p], "port", "peer",
+                         f"{p} (site \"{site_name}\")", [int], "int")
+    rl.append(r1)
+    rl.append(r2)
+    if r1.get_success() and r2.get_success():
+      r = check_port(peers[p]["port"], peers[p]["ingoing_connected_peers"])
+      rl.append(r)
 
     # Check redirect_all_traffic
-    __check_key(peers[p], "redirect_all_traffic", "peer",
-                f"{p} (site \"{site_name}\")", [dict], "dict")
-    if peers[p]["redirect_all_traffic"]:
-      __check_key(
-        peers[p]["redirect_all_traffic"], "ipv4", "key",
-        f"ipv4 in \"redirect_all_traffic\" (peer {p} from site \"{site_name}\")",
-        [bool], "bool")
-      __check_key(
-        peers[p]["redirect_all_traffic"], "ipv6", "key",
-        f"ipv6 in \"redirect_all_traffic\" (peer {p} from site \"{site_name}\")",
-        [bool], "bool")
+    r1, r2 = __check_key(peers[p], "redirect_all_traffic", "peer",
+                         f"{p} (site \"{site_name}\")", [dict], "dict")
+    rl.append(r1)
+    rl.append(r2)
+    if r1.get_success() and r2.get_success():
+      if peers[p]["redirect_all_traffic"]:
+        r1, r2 = __check_key(
+          peers[p]["redirect_all_traffic"], "ipv4", "key",
+          f"ipv4 in \"redirect_all_traffic\" (peer {p} from site \"{site_name}\")",
+          [bool], "bool")
+        rl.append(r1)
+        rl.append(r2)
+        r1, r2 = __check_key(
+          peers[p]["redirect_all_traffic"], "ipv6", "key",
+          f"ipv6 in \"redirect_all_traffic\" (peer {p} from site \"{site_name}\")",
+          [bool], "bool")
+        rl.append(r1)
+        rl.append(r2)
 
     # Check post_up and post_down
-    __check_key(peers[p], "post_up", "peer", f"{p} (site \"{site_name}\")",
-                [str], "str")
-    __check_key(peers[p], "post_down", "peer", f"{p} (site \"{site_name}\")",
-                [str], "str")
+    r1, r2 = __check_key(peers[p], "post_up", "peer",
+                         f"{p} (site \"{site_name}\")", [str], "str")
+    rl.append(r1)
+    rl.append(r2)
+    if r1.get_success() and r2.get_success():
+      r1, r2 = __check_key(peers[p], "post_down", "peer",
+                           f"{p} (site \"{site_name}\")", [str], "str")
+      rl.append(r1)
+      rl.append(r2)
 
     # Check ipv6_routing_fix
-    __check_key(peers[p], "ipv6_routing_fix", "peer",
-                f"{p} (site \"{site_name}\")", [bool], "bool")
+    r1, r2 = __check_key(peers[p], "ipv6_routing_fix", "peer",
+                         f"{p} (site \"{site_name}\")", [bool], "bool")
+    rl.append(r1)
+    rl.append(r2)
 
     peer_results.append(rl)
 
@@ -240,7 +308,8 @@ def check_peer_integrity(peers: Peers, site_name: str, allow_ipv4: bool,
 
 def check_imported_settings(settings: Settings) -> Settings:
   # Update routines for old file versions
-  __check_key(settings, "file_version", "key", "settings", [str], "str")
+  r1, r2 = __check_key(settings, "file_version", "key", "settings", [str],
+                       "str")
   if settings["file_version"] not in version_dict:
     raise DataIntegrityError(
       f"The settings are version {settings['file_version']}, which is currently not supported. Latest supported version is {settings_latest_version}"
@@ -268,10 +337,12 @@ def check_imported_settings(settings: Settings) -> Settings:
   # Data integrity check
 
   # Check keys
-  __check_key(settings, "verbosity", "key", "settings", [int], "int")
-  __check_key(settings, "sites_file_path", "key", "settings", [str], "str")
-  __check_key(settings, "wg_config_path", "key", "settings", [str], "str")
-  __check_key(settings, "editor", "key", "settings", [str], "str")
+  r1, r2 = __check_key(settings, "verbosity", "key", "settings", [int], "int")
+  r1, r2 = __check_key(settings, "sites_file_path", "key", "settings", [str],
+                       "str")
+  r1, r2 = __check_key(settings, "wg_config_path", "key", "settings", [str],
+                       "str")
+  r1, r2 = __check_key(settings, "editor", "key", "settings", [str], "str")
 
   return settings
 
@@ -541,56 +612,71 @@ def check_peer_connections(peer_name: str, peers: Peers) -> Result:
   # Check outgoing peers
   for outgoing_peer in peers[peer_name]["outgoing_connected_peers"]:
     # Check if outgoing_peer exists
-    if outgoing_peer not in peers:
-      r.append(
-        PeerConnectionsMessage(message_level=MESSAGE_LEVEL.ERROR,
-                               message=PeerConnectionsMessageContent(
-                                 message_type=PEER_CONNECTIONS_MESSAGE_TYPE.
-                                 OUTGOING_PEER_NON_EXISTENCE,
-                                 peer_1=peer_name,
-                                 peer_2=outgoing_peer)))
+    try:
+      if outgoing_peer not in peers:
+        r.append(
+          PeerConnectionsMessage(message_level=MESSAGE_LEVEL.ERROR,
+                                 message=PeerConnectionsMessageContent(
+                                   message_type=PEER_CONNECTIONS_MESSAGE_TYPE.
+                                   OUTGOING_PEER_NON_EXISTENCE,
+                                   peer_1=peer_name,
+                                   peer_2=outgoing_peer)))
+    except KeyError:
+      pass
     # Check if p is an ingoing_peer in outgoing_peer
-    if peer_name not in peers[outgoing_peer]["ingoing_connected_peers"]:
-      r.append(
-        PeerConnectionsMessage(message_level=MESSAGE_LEVEL.ERROR,
-                               message=PeerConnectionsMessageContent(
-                                 message_type=PEER_CONNECTIONS_MESSAGE_TYPE.
-                                 OUTGOING_PEER_NOT_INGOING,
-                                 peer_1=peer_name,
-                                 peer_2=outgoing_peer)))
+    try:
+      if peer_name not in peers[outgoing_peer]["ingoing_connected_peers"]:
+        r.append(
+          PeerConnectionsMessage(message_level=MESSAGE_LEVEL.ERROR,
+                                 message=PeerConnectionsMessageContent(
+                                   message_type=PEER_CONNECTIONS_MESSAGE_TYPE.
+                                   OUTGOING_PEER_NOT_INGOING,
+                                   peer_1=peer_name,
+                                   peer_2=outgoing_peer)))
+    except KeyError:
+      pass
 
   # Check ingoing peers
   for ingoing_peer in peers[peer_name]["ingoing_connected_peers"]:
     # Check if ingoing_peer exists
-    if ingoing_peer not in peers:
-      r.append(
-        PeerConnectionsMessage(message_level=MESSAGE_LEVEL.ERROR,
-                               message=PeerConnectionsMessageContent(
-                                 message_type=PEER_CONNECTIONS_MESSAGE_TYPE.
-                                 INGOING_PEER_NON_EXISTENCE,
-                                 peer_1=peer_name,
-                                 peer_2=ingoing_peer)))
+    try:
+      if ingoing_peer not in peers:
+        r.append(
+          PeerConnectionsMessage(message_level=MESSAGE_LEVEL.ERROR,
+                                 message=PeerConnectionsMessageContent(
+                                   message_type=PEER_CONNECTIONS_MESSAGE_TYPE.
+                                   INGOING_PEER_NON_EXISTENCE,
+                                   peer_1=peer_name,
+                                   peer_2=ingoing_peer)))
+    except KeyError:
+      pass
     # Check if p is an outgoing_peer in ingoing_peer
-    if peer_name not in peers[ingoing_peer]["outgoing_connected_peers"]:
-      r.append(
-        PeerConnectionsMessage(message_level=MESSAGE_LEVEL.ERROR,
-                               message=PeerConnectionsMessageContent(
-                                 message_type=PEER_CONNECTIONS_MESSAGE_TYPE.
-                                 INGOING_PEER_NOT_OUTGOING,
-                                 peer_1=peer_name,
-                                 peer_2=ingoing_peer)))
+    try:
+      if peer_name not in peers[ingoing_peer]["outgoing_connected_peers"]:
+        r.append(
+          PeerConnectionsMessage(message_level=MESSAGE_LEVEL.ERROR,
+                                 message=PeerConnectionsMessageContent(
+                                   message_type=PEER_CONNECTIONS_MESSAGE_TYPE.
+                                   INGOING_PEER_NOT_OUTGOING,
+                                   peer_1=peer_name,
+                                   peer_2=ingoing_peer)))
+    except KeyError:
+      pass
 
   # Check if main_peer is present and an outgoing_peer
-  if peers[peer_name]["outgoing_connected_peers"] and (
-      peers[peer_name]["main_peer"]
-      not in peers[peer_name]["outgoing_connected_peers"]):
-    r.append(
-      PeerConnectionsMessage(
-        message_level=MESSAGE_LEVEL.ERROR,
-        message=PeerConnectionsMessageContent(
-          message_type=PEER_CONNECTIONS_MESSAGE_TYPE.MAIN_PEER_NOT_OUTGOING,
-          peer_1=peer_name,
-          peer_2="")))
+  try:
+    if peers[peer_name]["outgoing_connected_peers"] and (
+        peers[peer_name]["main_peer"]
+        not in peers[peer_name]["outgoing_connected_peers"]):
+      r.append(
+        PeerConnectionsMessage(
+          message_level=MESSAGE_LEVEL.ERROR,
+          message=PeerConnectionsMessageContent(
+            message_type=PEER_CONNECTIONS_MESSAGE_TYPE.MAIN_PEER_NOT_OUTGOING,
+            peer_1=peer_name,
+            peer_2="")))
+  except KeyError:
+    pass
   return r
 
 
@@ -684,24 +770,80 @@ def check_port(port: int,
   return r
 
 
+##########################################################################################
+# Check Key
+##########################################################################################
+
+
+class KEY_PRESENCE_MESSAGE_TYPE():
+  @property
+  def NOT_FOUND():
+    return 0
+
+
+class KeyPresenceMessageContent(MessageContent):
+  message_type: int
+  key: str
+
+
+KeyPresenceMessage = Message[KeyPresenceMessageContent]
+
+
+class KEY_DATATYPE_MESSAGE_TYPE():
+  @property
+  def DATATYPE_WRONG():
+    return 0
+
+
+class KeyDatatypeMessageContent(MessageContent):
+  message_type: int
+  key: str
+  datatypes_target: list
+  datatype_actual: str
+
+
+KeyDatatypeMessage = Message[KeyDatatypeMessageContent]
+
+
 def __check_key(d: dict, key: str, what_is_checked: str, dict_name: str,
-                datatypes: list, datatype_name: str):
-  __check_key_presence(d, key, what_is_checked, dict_name, datatype_name)
-  __check_datatype(d[key], what_is_checked, dict_name, datatypes,
-                   datatype_name)
+                datatypes: list, datatype_name: str) -> Tuple[Result, Result]:
+  rk = Result()
+  rd = Result()
+
+  rk = __check_key_presence(d, key, what_is_checked, dict_name, datatype_name)
+  if rk.get_success():
+    rd = __check_datatype(d[key], what_is_checked, dict_name, datatypes,
+                          datatype_name)
+  return (rd, rk)
+
+
+##########################################################################################
+# Check Key presence
+##########################################################################################
 
 
 def __check_key_presence(d: dict, key: str, what_is_checked: str,
-                         dict_name: str, datatype_name: str):
+                         dict_name: str, datatype_name: str) -> Result:
+  r = Result()
   try:
     d[key]
   except KeyError:
-    raise DataIntegrityError(
-      f"Key \"{key}\" not present in {what_is_checked} \"{dict_name}\"")
+    r.append(
+      KeyPresenceMessage(message_level=MESSAGE_LEVEL.ERROR,
+                         message=KeyPresenceMessageContent(
+                           message_type=KEY_PRESENCE_MESSAGE_TYPE.NOT_FOUND,
+                           key=key)))
+  return r
+
+
+##########################################################################################
+# Check Key datatype
+##########################################################################################
 
 
 def __check_datatype(o, what_is_checked: str, dict_name: str, datatypes: list,
-                     datatype_name: str):
+                     datatype_name: str) -> Result:
+  r = Result()
   valid = False
   for d in datatypes:
     if d is None:
@@ -710,6 +852,12 @@ def __check_datatype(o, what_is_checked: str, dict_name: str, datatypes: list,
     elif isinstance(o, d):
       valid = True
   if not valid:
-    raise DataIntegrityError(
-      f"\"{o}\" in {what_is_checked} \"{dict_name}\" should be {datatypes} not {type(o)}"
-    )
+    r.append(
+      KeyDatatypeMessage(
+        message_level=MESSAGE_LEVEL.ERROR,
+        message=KeyDatatypeMessageContent(
+          message_type=KEY_DATATYPE_MESSAGE_TYPE.DATATYPE_WRONG,
+          key=dict_name,
+          datatypes_target=datatypes,
+          datatype_actual=type(o))))
+  return r

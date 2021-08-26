@@ -105,6 +105,7 @@ Release 0.1.0b3
 Release 0.1.0b4
 * Added:
   - [UI] Add support for multiple languages (at the moment "en" and "de")
+  - [UI] [Library] Add key_presence and key_datatype startup messages
 * Fixed:
   -
 * Changed:

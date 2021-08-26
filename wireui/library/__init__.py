@@ -17,6 +17,8 @@ from .integrity import AAIPs_MESSAGE_TYPE
 from .integrity import DNS_MESSAGE_TYPE
 from .integrity import ENDPOINT_MESSAGE_TYPE
 from .integrity import IP_NETWORK_MESSAGE_TYPE
+from .integrity import KEY_DATATYPE_MESSAGE_TYPE
+from .integrity import KEY_PRESENCE_MESSAGE_TYPE
 from .integrity import PORT_MESSAGE_TYPE
 from .integrity import AAIPsMessageContent
 from .integrity import AAIPsMessage
@@ -26,6 +28,10 @@ from .integrity import EndpointMessageContent
 from .integrity import EndpointMessage
 from .integrity import IPNetworkMessage
 from .integrity import IPNetworkMessageContent
+from .integrity import KeyDatatypeMessage
+from .integrity import KeyDatatypeMessageContent
+from .integrity import KeyPresenceMessage
+from .integrity import KeyPresenceMessageContent
 from .integrity import PortMessage
 from .integrity import PortMessageContent
 
@@ -84,6 +90,8 @@ __all__ = [
   "DNS_MESSAGE_TYPE",
   "ENDPOINT_MESSAGE_TYPE",
   "IP_NETWORK_MESSAGE_TYPE",
+  "KEY_DATATYPE_MESSAGE_TYPE",
+  "KEY_PRESENCE_MESSAGE_TYPE",
   "MESSAGE_LEVEL",
   "PORT_MESSAGE_TYPE",
   "AAIPsMessageContent",
@@ -99,8 +107,12 @@ __all__ = [
   "JSONDecodeError",
   "JsonDict",
   "Keys",
+  "KeyDatatypeMessage",
+  "KeyDatatypeMessageContent",
   "KeyDoesExistError",
   "KeyDoesNotExistError",
+  "KeyPresenceMessage",
+  "KeyPresenceMessageContent",
   "Message",
   "MessageContent",
   "Peer",

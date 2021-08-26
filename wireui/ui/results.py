@@ -4,6 +4,8 @@ from ..library import AAIPs_MESSAGE_TYPE
 from ..library import DNS_MESSAGE_TYPE
 from ..library import ENDPOINT_MESSAGE_TYPE
 from ..library import IP_NETWORK_MESSAGE_TYPE
+from ..library import KEY_DATATYPE_MESSAGE_TYPE
+from ..library import KEY_PRESENCE_MESSAGE_TYPE
 from ..library import MESSAGE_LEVEL
 from ..library import PORT_MESSAGE_TYPE
 from ..library import AAIPsMessage
@@ -14,6 +16,10 @@ from ..library import EndpointMessage
 from ..library import EndpointMessageContent
 from ..library import IPNetworkMessage
 from ..library import IPNetworkMessageContent
+from ..library import KeyDatatypeMessage
+from ..library import KeyDatatypeMessageContent
+from ..library import KeyPresenceMessage
+from ..library import KeyPresenceMessageContent
 from ..library import Message
 from ..library import PortMessage
 from ..library import PortMessageContent
@@ -44,6 +50,10 @@ def get_result_message(r: Result, start: Optional[str] = "") -> str:
       t += __get_port_message(m)
     elif isinstance(m.get_message(), AAIPsMessageContent):
       t += __get_aaips_message(m)
+    elif isinstance(m.get_message(), KeyPresenceMessageContent):
+      t += __get_key_presence_message(m)
+    elif isinstance(m.get_message(), KeyDatatypeMessageContent):
+      t += __get_key_datatype_message(m)
     if t == start:
       t = ""
     s += t
@@ -112,6 +122,28 @@ def __get_aaips_message(msg: AAIPsMessage) -> str:
     s += __get_message_level(msg)
     s += f"{strings['aaips_ipv6_not_allowed']}\n".format(
       msg.get_message().ip_network)
+  return s
+
+
+def __get_key_presence_message(msg: KeyPresenceMessage) -> str:
+  strings = UI_Strings.get_instance()
+  s = ""
+  if msg.get_message().message_type == KEY_PRESENCE_MESSAGE_TYPE.NOT_FOUND:
+    s += __get_message_level(msg)
+    s += f"{strings['key_presence_not_found']}\n".format(msg.get_message().key)
+  return s
+
+
+def __get_key_datatype_message(msg: KeyDatatypeMessage) -> str:
+  strings = UI_Strings.get_instance()
+  s = ""
+  if msg.get_message(
+  ).message_type == KEY_DATATYPE_MESSAGE_TYPE.DATATYPE_WRONG:
+    s += __get_message_level(msg)
+    s += f"{strings['key_datatype_wrong']}\n".format(
+      msg.get_message().key,
+      msg.get_message().datatype_actual,
+      msg.get_message().datatypes_target)
   return s
 
 
