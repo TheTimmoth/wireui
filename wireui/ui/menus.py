@@ -25,20 +25,20 @@ from ..shared import UI_Strings
 def entrypoint_menu(w: WireUI):
   strings = UI_Strings.get_instance()
   while True:
-    print_header(f"{strings['entrypoint_header']}")
+    print_header(f"{strings['entrypoint_menu']['header']}")
 
     options = {
-      "1": f"{strings['entrypoint_add']}",
+      "1": f"{strings['entrypoint_menu']['add']}",
     }
     if len(w.get_sites()):
       options.update({
-        "2": f"{strings['entrypoint_edit']}",
-        "3": f"{strings['entrypoint_delete']}",
-        "4": f"{strings['entrypoint_edit_connections']}",
-        "5": f"{strings['entrypoint_site_menu']}",
-        "6": f"{strings['entrypoint_config_files']}",
-        "a": f"{strings['entrypoint_about']}",
-        "q": f"{strings['exit']}",
+        "2": f"{strings['entrypoint_menu']['edit']}",
+        "3": f"{strings['entrypoint_menu']['delete']}",
+        "4": f"{strings['entrypoint_menu']['edit_connections']}",
+        "5": f"{strings['entrypoint_menu']['site_menu']}",
+        "6": f"{strings['entrypoint_menu']['config_files']}",
+        "a": f"{strings['entrypoint_menu']['about']}",
+        "q": f"{strings['misc']['exit']}",
       })
       default = "6"
     else:
@@ -80,16 +80,16 @@ def site_menu(w: WireUI, site_name: str):
     peers_count = len(w.get_peer_names(site_name))
 
     options = {
-      "1": f"{strings['site_menu_add']}",
+      "1": f"{strings['site_menu']['add']}",
     }
     default = "1"
     if len(w.get_peer_names(site_name)):
       options.update({
-        "2": f"{strings['site_menu_edit']}",
-        "3": f"{strings['site_menu_delete']}",
-        "4": f"{strings['site_menu_rekey']}",
-        "b": f"{strings['back']}",
-        "q": f"{strings['exit']}",
+        "2": f"{strings['site_menu']['edit']}",
+        "3": f"{strings['site_menu']['delete']}",
+        "4": f"{strings['site_menu']['rekey']}",
+        "b": f"{strings['misc']['back']}",
+        "q": f"{strings['misc']['exit']}",
       })
       default = "b"
 
@@ -114,18 +114,18 @@ def site_menu(w: WireUI, site_name: str):
 
 def __about():
   strings_ = UI_Strings.get_instance()
-  print_header(f"{strings_['about']}")
+  print_header(f"{strings_['misc']['about']}")
   print_message(0, strings.name)
   print_message(0, strings.description)
-  print_message(0, f"{strings_['version']} {strings.version}")
+  print_message(0, f"{strings_['misc']['version']} {strings.version}")
   print_message(0, f"{strings.copyright} {strings.author}")
   print_message(0, "")
-  input(f"{strings_['enter_back']}")
+  input(f"{strings_['misc']['enter_back']}")
   leave_menu()
 
 
 def __exit(i):
   strings = UI_Strings.get_instance()
   clear_screen()
-  print_message(0, f"{strings['bye']}")
+  print_message(0, f"{strings['misc']['bye']}")
   exit(i)

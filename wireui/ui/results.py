@@ -65,10 +65,11 @@ def __get_dns_message(msg: DNSMessage) -> str:
   s = ""
   if msg.get_message().message_type == DNS_MESSAGE_TYPE.IP_ADDRESS_INVALID:
     s += __get_message_level(msg)
-    s += f"{strings['dns_invalid']}\n".format(msg.get_message().ip_address)
+    s += f"{strings['integrity']['dns_invalid']}\n".format(
+      msg.get_message().ip_address)
   elif msg.get_message().message_type == DNS_MESSAGE_TYPE.IP_ADDRESS_VERSION:
     s += __get_message_level(msg)
-    s += f"{strings['dns_ip_version_wrong']}\n".format(
+    s += f"{strings['integrity']['dns_ip_version_wrong']}\n".format(
       msg.get_message().ip_address)
   return s
 
@@ -79,11 +80,11 @@ def __get_ip_network_message(msg: IPNetworkMessage) -> str:
   if msg.get_message(
   ).message_type == IP_NETWORK_MESSAGE_TYPE.IP_NETWORK_INVALID:
     s += __get_message_level(msg)
-    s += f"{strings['ip_network_invalid']}\n".format(
+    s += f"{strings['integrity']['ip_network_invalid']}\n".format(
       msg.get_message().ip_network)
   elif msg.get_message().message_type == DNS_MESSAGE_TYPE.IP_ADDRESS_VERSION:
     s += __get_message_level(msg)
-    s += f"{strings['ip_network_prefix']}\n".format(
+    s += f"{strings['integrity']['ip_network_prefix']}\n".format(
       msg.get_message().ip_network,
       msg.get_message().prefix)
   return s
@@ -94,7 +95,8 @@ def __get_endpoint_message(msg: EndpointMessage) -> str:
   s = ""
   if msg.get_message().message_type == ENDPOINT_MESSAGE_TYPE.ENDPOINT_INVALID:
     s += __get_message_level(msg)
-    s += f"{strings['endpoint_invalid']}\n".format(msg.get_message().endpoint)
+    s += f"{strings['integrity']['endpoint_invalid']}\n".format(
+      msg.get_message().endpoint)
   return s
 
 
@@ -103,7 +105,8 @@ def __get_port_message(msg: PortMessage) -> str:
   s = ""
   if msg.get_message().message_type == PORT_MESSAGE_TYPE.PORT_INVALID:
     s += __get_message_level(msg)
-    s += f"{strings['port_invalid']}\n".format(msg.get_message().port)
+    s += f"{strings['integrity']['port_invalid']}\n".format(
+      msg.get_message().port)
   return s
 
 
@@ -112,15 +115,15 @@ def __get_aaips_message(msg: AAIPsMessage) -> str:
   s = ""
   if msg.get_message().message_type == AAIPs_MESSAGE_TYPE.IP_NETWORK_INVALID:
     s += __get_message_level(msg)
-    s += f"{strings['aaips_network_invalid']}\n".format(
+    s += f"{strings['integrity']['aaips_network_invalid']}\n".format(
       msg.get_message().ip_network)
   elif msg.get_message().message_type == AAIPs_MESSAGE_TYPE.IPv4_NOT_ACTIVATED:
     s += __get_message_level(msg)
-    s += f"{strings['aaips_ipv4_not_allowed']}\n".format(
+    s += f"{strings['integrity']['aaips_ipv4_not_allowed']}\n".format(
       msg.get_message().ip_network)
   elif msg.get_message().message_type == AAIPs_MESSAGE_TYPE.IPv6_NOT_ACTIVATED:
     s += __get_message_level(msg)
-    s += f"{strings['aaips_ipv6_not_allowed']}\n".format(
+    s += f"{strings['integrity']['aaips_ipv6_not_allowed']}\n".format(
       msg.get_message().ip_network)
   return s
 
@@ -130,7 +133,8 @@ def __get_key_presence_message(msg: KeyPresenceMessage) -> str:
   s = ""
   if msg.get_message().message_type == KEY_PRESENCE_MESSAGE_TYPE.NOT_FOUND:
     s += __get_message_level(msg)
-    s += f"{strings['key_presence_not_found']}\n".format(msg.get_message().key)
+    s += f"{strings['integrity']['key_presence_not_found']}\n".format(
+      msg.get_message().key)
   return s
 
 
@@ -140,7 +144,7 @@ def __get_key_datatype_message(msg: KeyDatatypeMessage) -> str:
   if msg.get_message(
   ).message_type == KEY_DATATYPE_MESSAGE_TYPE.DATATYPE_WRONG:
     s += __get_message_level(msg)
-    s += f"{strings['key_datatype_wrong']}\n".format(
+    s += f"{strings['integrity']['key_datatype_wrong']}\n".format(
       msg.get_message().key,
       msg.get_message().datatype_actual,
       msg.get_message().datatypes_target)
@@ -151,9 +155,9 @@ def __get_message_level(msg: Message) -> str:
   strings = UI_Strings.get_instance()
   s = ""
   if msg.get_message_level() == MESSAGE_LEVEL.ERROR:
-    s += f"[{strings['error']}] "
+    s += f"[{strings['integrity']['error']}] "
   elif msg.get_message_level() == MESSAGE_LEVEL.WARNING:
-    s += f"[{strings['warning']}] "
+    s += f"[{strings['integrity']['warning']}] "
   elif msg.get_message_level() == MESSAGE_LEVEL.INFORMATION:
-    s += f"[{strings['information']}] "
+    s += f"[{strings['integrity']['information']}] "
   return s
