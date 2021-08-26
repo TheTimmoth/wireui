@@ -101,3 +101,13 @@ Release 0.1.0b3
   - More readable error messages if there is an error in one of the JSON files
 * Known bugs and limitations:
   - Interface is not stable and can change drastically in future releases
+
+Release 0.1.0b4
+* Added:
+  - [UI] Add support for multiple languages (at the moment "en" and "de")
+* Fixed:
+  -
+* Changed:
+  -
+* Known bugs and limitations:
+  - Interface is not stable and can change drastically in future releases

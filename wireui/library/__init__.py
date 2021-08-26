@@ -1,5 +1,3 @@
-from . import strings
-
 from .config import delete_config
 from .config import write_config
 
@@ -49,6 +47,7 @@ from .typedefs import Keys
 from .typedefs import PeerDoesExistError
 from .typedefs import PeerDoesNotExistError
 from .typedefs import PeerItems
+from .typedefs import ReadOnlyJsonDict
 from .typedefs import Result
 from .typedefs import ResultList
 from .typedefs import SettingDoesExistError
@@ -81,7 +80,6 @@ __all__ = [
   "read_file",
   "write_config",
   "write_file",
-  "strings",
   "AAIPs_MESSAGE_TYPE",
   "DNS_MESSAGE_TYPE",
   "ENDPOINT_MESSAGE_TYPE",
@@ -111,6 +109,7 @@ __all__ = [
   "PeerItems",
   "PortMessage",
   "PortMessageContent",
+  "ReadOnlyJsonDict",
   "RedirectAllTraffic",
   "Result",
   "ResultList",

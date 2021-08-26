@@ -1,0 +1,21 @@
+{
+  "en": {
+    "aaips_network_invalid": "{} is not a valid IP network.",
+    "aaips_ipv4_not_allowed": "{} is IPv4, but IPv4 is not allowed.",
+    "aaips_ipv6_not_allowed": "{} is IPv6, but IPv6 is not allowed.",
+    "dns_invalid": "{} is not a valid IP address",
+    "dns_ip_version_wrong": "{} has a wrong IP address version",
+    "endpoint_invalid": "{} is not a valid URL or IP address",
+    "enter_exit": "Press ENTER to exit...",
+    "enter_continue": "Press ENTER to continue...",
+    "error": "Error",
+    "import_results": "Import Results",
+    "ip_network_invalid": "{} is not a valid IP network",
+    "ip_network_prefix": "{} has a too high prefix. Prefix is {}",
+    "information": "Information",
+    "peer": "Peer",
+    "port_invalid": "{} is of range. Port must be within 1-65535",
+    "site": "Site",
+    "warning": "Warning"
+  }
+}

@@ -1,5 +1,6 @@
 from .dicts import JSONDecodeError
 from .dicts import JsonDict
+from .dicts import ReadOnlyJsonDict
 
 from .exceptions import DataIntegrityError
 from .exceptions import KeyDoesExistError
@@ -52,6 +53,7 @@ __all__ = [
   "PeerDoesExistError",
   "PeerDoesNotExistError",
   "Peers",
+  "ReadOnlyJsonDict",
   "RedirectAllTraffic",
   "Result",
   "ResultList",

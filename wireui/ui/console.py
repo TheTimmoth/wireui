@@ -13,7 +13,7 @@ from typing import Optional
 
 from .elements import vline
 
-from ..library import strings
+from ..shared import strings
 
 __menu_list = []
 __verbosity = 2

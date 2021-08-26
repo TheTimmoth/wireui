@@ -17,8 +17,9 @@ from .sites import edit_site
 from .sites import delete_site
 from .sites import get_site_name
 
-from ..library import strings
 from ..library import WireUI
+
+from ..shared import strings
 
 
 def entrypoint_menu(w: WireUI):
