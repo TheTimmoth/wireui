@@ -29,6 +29,8 @@ def entrypoint_menu(w: WireUI):
 
     options = {
       "1": f"{strings['entrypoint_menu']['add']}",
+      "a": f"{strings['entrypoint_menu']['about']}",
+      "q": f"{strings['misc']['exit']}",
     }
     if len(w.get_sites()):
       options.update({
@@ -37,8 +39,6 @@ def entrypoint_menu(w: WireUI):
         "4": f"{strings['entrypoint_menu']['edit_connections']}",
         "5": f"{strings['entrypoint_menu']['site_menu']}",
         "6": f"{strings['entrypoint_menu']['config_files']}",
-        "a": f"{strings['entrypoint_menu']['about']}",
-        "q": f"{strings['misc']['exit']}",
       })
       default = "6"
     else:
@@ -81,6 +81,8 @@ def site_menu(w: WireUI, site_name: str):
 
     options = {
       "1": f"{strings['site_menu']['add']}",
+      "b": f"{strings['misc']['back']}",
+      "q": f"{strings['misc']['exit']}",
     }
     default = "1"
     if len(w.get_peer_names(site_name)):
@@ -88,8 +90,6 @@ def site_menu(w: WireUI, site_name: str):
         "2": f"{strings['site_menu']['edit']}",
         "3": f"{strings['site_menu']['delete']}",
         "4": f"{strings['site_menu']['rekey']}",
-        "b": f"{strings['misc']['back']}",
-        "q": f"{strings['misc']['exit']}",
       })
       default = "b"
 
