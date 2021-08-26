@@ -18,26 +18,27 @@ from .sites import delete_site
 from .sites import get_site_name
 
 from ..library import WireUI
-
 from ..shared import strings
+from ..shared import UI_Strings
 
 
 def entrypoint_menu(w: WireUI):
+  strings = UI_Strings.get_instance()
   while True:
-    print_header("Main menu")
+    print_header(f"{strings['entrypoint_header']}")
 
     options = {
-      "1": "Create new site",
+      "1": f"{strings['entrypoint_add']}",
     }
     if len(w.get_sites()):
       options.update({
-        "2": "Edit properties of existing site",
-        "3": "Delete existing site",
-        "4": "Edit connection table",
-        "5": "Go to the site menu",
-        "6": "Recreate config files",
-        "a": "Informations about this program",
-        "q": "Exit",
+        "2": f"{strings['entrypoint_edit']}",
+        "3": f"{strings['entrypoint_delete']}",
+        "4": f"{strings['entrypoint_edit_connections']}",
+        "5": f"{strings['entrypoint_site_menu']}",
+        "6": f"{strings['entrypoint_config_files']}",
+        "a": f"{strings['entrypoint_about']}",
+        "q": f"{strings['exit']}",
       })
       default = "6"
     else:
@@ -72,26 +73,23 @@ def entrypoint_menu(w: WireUI):
 
 
 def site_menu(w: WireUI, site_name: str):
+  strings = UI_Strings.get_instance()
   leave = False
   while not leave:
-    print_header(f"Site \"{site_name}\"")
+    print_header(f"{strings['site']} \"{site_name}\"")
     peers_count = len(w.get_peer_names(site_name))
 
-    # TODO: Remove this hint when editing is possible
-    print_message(0,
-                  "For full editing of peers please use the sites.json file!")
-
     options = {
-      "1": "Add peer",
+      "1": f"{strings['site_menu_add']}",
     }
     default = "1"
     if len(w.get_peer_names(site_name)):
       options.update({
-        "2": "Edit properties of a peer",
-        "3": "Delete peer",
-        "4": "Create new keys for a peer",
-        "b": "Back",
-        "q": "Exit",
+        "2": f"{strings['site_menu_edit']}",
+        "3": f"{strings['site_menu_delete']}",
+        "4": f"{strings['site_menu_rekey']}",
+        "b": f"{strings['back']}",
+        "q": f"{strings['exit']}",
       })
       default = "b"
 
@@ -115,17 +113,19 @@ def site_menu(w: WireUI, site_name: str):
 
 
 def __about():
-  print_header("About")
+  strings_ = UI_Strings.get_instance()
+  print_header(f"{strings_['about']}")
   print_message(0, strings.name)
   print_message(0, strings.description)
-  print_message(0, f"Version {strings.version}")
+  print_message(0, f"{strings_['version']} {strings.version}")
   print_message(0, f"{strings.copyright} {strings.author}")
   print_message(0, "")
-  input("Press ENTER to go back...")
+  input(f"{strings_['enter_back']}")
   leave_menu()
 
 
 def __exit(i):
+  strings = UI_Strings.get_instance()
   clear_screen()
-  print_message(0, "Bye")
+  print_message(0, f"{strings['bye']}")
   exit(i)
