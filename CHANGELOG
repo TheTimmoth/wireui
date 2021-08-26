@@ -106,8 +106,10 @@ Release 0.1.0b4
 * Added:
   - [UI] Add support for multiple languages (at the moment "en" and "de")
   - [UI] [Library] Add key_presence and key_datatype startup messages
+  - [UI] During editing of site properties the connection table can now be changed
 * Fixed:
   - [Library] Fix use of wrong encoding during file read
+  - [Library] Fix wrong submission of key that is checked in key_datatype
 * Changed:
   -
 * Known bugs and limitations:

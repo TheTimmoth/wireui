@@ -17,6 +17,7 @@ from .results import get_result_message
 
 from .shared import create_wireguard_config
 from .shared import edit_connection_table
+from .shared import edit_peer_connections
 from .shared import edit_string
 from .shared import get_new_peer_properties
 
@@ -61,11 +62,7 @@ def add_site(w: WireUI) -> str:
       get_new_peer_properties(w, site_name, p, dns, ct, allow_ipv4,
                               allow_ipv6))
 
-  try:
-    w.add_site(Site(site_name, ip, dns, peers))
-  except SiteDoesExistError as e:
-    print_error(0, "Site does already exist. Doing nothing...")
-    print_error(0, e)
+  w.add_site(Site(site_name, ip, dns, peers))
 
   create_wireguard_config(w, site_name)
 
@@ -101,13 +98,11 @@ def edit_site():
   # Get DNS
   dns = __get_dns(w, allow_ipv4, allow_ipv6, s.dns)
 
-  # Edit connection table
-  # TODO: should this be possible here?
-  # if yes_no_menu("Do you want to edit the connection table?", False):
-  #   edit_peer_connections(w, site_name)
-
   w.set_site(
     Site(name=site_name, ip_networks=ip_networks, dns=dns, peers=s.peers))
+
+  if yes_no_menu("Do you want to edit the connection table?", False):
+    edit_peer_connections(w, site_name)
 
   create_wireguard_config(w, site_name)
 
@@ -125,11 +120,7 @@ def delete_site(w: WireUI):
   if yes_no_menu("Do you really want to delete the site \"" + site_name +
                  "\"?"):
     w.delete_wireguard_config(site_name)
-    try:
-      w.delete_site(site_name)
-    except SiteDoesNotExistError as e:
-      print_error(0, "Site does not exist. Doing nothing...")
-      print_error(0, e)
+    w.delete_site(site_name)
   leave_menu()
 
 

@@ -66,7 +66,7 @@ def check_imported_sites(sites: Sites) -> DataIntegrityResult:
     site_result = ResultList(s)
 
     # Check config_version
-    r1, r2 = __check_key(sites[s], "config_version", "site", s, [str], "str")
+    r1, r2 = __check_key(sites[s], "config_version", [str])
     site_result.append(r1)
     site_result.append(r2)
     if r1.get_success() and r2.get_success():
@@ -95,13 +95,13 @@ def check_imported_sites(sites: Sites) -> DataIntegrityResult:
     # Data integrity check
 
     # Check ip_networks
-    r1, r2 = __check_key(sites[s], "ip_networks", "site", s, [list], "list")
+    r1, r2 = __check_key(sites[s], "ip_networks", [list])
     site_result.append(r1)
     site_result.append(r2)
     if r1.get_success() and r2.get_success():
       success = True
       for n in sites[s]["ip_networks"]:
-        r = __check_datatype(n, "key", "ip_networks", [str], "str")
+        r = __check_datatype(n, "ip_networks", [str])
         site_result.append(r)
         success &= r.get_success()
       if success:
@@ -109,13 +109,13 @@ def check_imported_sites(sites: Sites) -> DataIntegrityResult:
         site_result.append(r)
 
     # Check DNS servers
-    r1, r2 = __check_key(sites[s], "dns", "site", s, [list], "list")
+    r1, r2 = __check_key(sites[s], "dns", [list])
     site_result.append(r1)
     site_result.append(r2)
     if r1.get_success() and r2.get_success():
       success = True
       for d in sites[s]["dns"]:
-        r = __check_datatype(d, "key", "dns", [str], "str")
+        r = __check_datatype(d, "dns", [str])
         site_result.append(r)
         success &= r.get_success()
       if success:
@@ -125,7 +125,7 @@ def check_imported_sites(sites: Sites) -> DataIntegrityResult:
         site_result.append(r)
 
     # Check peers
-    r1, r2 = __check_key(sites[s], "peers", "peers", "s", [dict], "dict")
+    r1, r2 = __check_key(sites[s], "peers", [dict])
     site_result.append(r1)
     site_result.append(r2)
     if r1.get_success() and r2.get_success():
@@ -156,9 +156,7 @@ def check_peer_integrity(peers: Peers, site_name: str, allow_ipv4: bool,
         peers[p]["post_down"] = ""
         peers[p]["ipv6_routing_fix"] = False
 
-        r1, r2 = __check_key(peers[p], "redirect_all_traffic", "peer",
-                             f"{p} (site \"{site_name}\")", [bool, None],
-                             "bool or null")
+        r1, r2 = __check_key(peers[p], "redirect_all_traffic", [bool, None])
         rl.append(r1)
         rl.append(r2)
         if r1.get_success() and r2.get_success():
@@ -187,19 +185,17 @@ def check_peer_integrity(peers: Peers, site_name: str, allow_ipv4: bool,
     # Data integrity check
 
     # Check keys
-    r1, r2 = __check_key(peers[p], "keys", "peer",
-                         f"{p} (site \"{site_name}\")", [dict], "dict")
+    r1, r2 = __check_key(peers[p], "keys", [dict])
     rl.append(r1)
     rl.append(r2)
     if r1.get_success() and r2.get_success():
       for k in peers[p]["keys"]:
-        r1, r2 = __check_key(peers[p]["keys"], k, "keys", k, [str], "str")
+        r1, r2 = __check_key(peers[p]["keys"], k, [str])
         rl.append(r1)
         rl.append(r2)
 
     # Check additional allowed ips
-    r1, r2 = __check_key(peers[p], "additional_allowed_ips", "peer",
-                         f"{p} (site \"{site_name}\")", [list], "list")
+    r1, r2 = __check_key(peers[p], "additional_allowed_ips", [list])
     rl.append(r1)
     rl.append(r2)
     if r1.get_success() and r2.get_success():
@@ -210,14 +206,13 @@ def check_peer_integrity(peers: Peers, site_name: str, allow_ipv4: bool,
       rl.append(r)
 
     # Check DNS servers
-    r1, r2 = __check_key(peers[p], "dns", "site",
-                         f"{p} (site \"{site_name}\")", [list], "list")
+    r1, r2 = __check_key(peers[p], "dns", [list])
     rl.append(r1)
     rl.append(r2)
     if r1.get_success() and r2.get_success():
       success = True
       for d in peers[p]["dns"]:
-        r = __check_datatype(d, "key", "dns", [str], "str")
+        r = __check_datatype(d, "dns", [str])
         rl.append(r)
         success &= r.get_success()
       if success:
@@ -228,16 +223,13 @@ def check_peer_integrity(peers: Peers, site_name: str, allow_ipv4: bool,
 
     # Check ingoing and outgoing_connected_peers and main_peer
     # If peer p2 is outgoing_connected_peer of peer p1, p1 has to be ingoing_connected of peer p2.
-    r1, r2 = __check_key(peers[p], "outgoing_connected_peers", "peer",
-                         f"{p} (site \"{site_name}\")", [list], "list")
+    r1, r2 = __check_key(peers[p], "outgoing_connected_peers", [list])
     rl.append(r1)
     rl.append(r2)
-    r3, r4 = __check_key(peers[p], "main_peer", "peer",
-                         f"{p} (site \"{site_name}\")", [str], "str")
+    r3, r4 = __check_key(peers[p], "main_peer", [str])
     rl.append(r3)
     rl.append(r4)
-    r5, r6 = __check_key(peers[p], "ingoing_connected_peers", "peer",
-                         f"{p} (site \"{site_name}\")", [list], "list")
+    r5, r6 = __check_key(peers[p], "ingoing_connected_peers", [list])
     rl.append(r5)
     rl.append(r6)
     if r1.get_success() and r2.get_success() and r3.get_success(
@@ -246,8 +238,7 @@ def check_peer_integrity(peers: Peers, site_name: str, allow_ipv4: bool,
       rl.append(r)
 
     # Check endpoint
-    r1, r2 = __check_key(peers[p], "endpoint", "peer",
-                         f"{p} (site \"{site_name}\")", [str], "str")
+    r1, r2 = __check_key(peers[p], "endpoint", [str])
     rl.append(r1)
     rl.append(r2)
     if r1.get_success() and r2.get_success():
@@ -256,8 +247,7 @@ def check_peer_integrity(peers: Peers, site_name: str, allow_ipv4: bool,
       rl.append(r)
 
     # Check port
-    r1, r2 = __check_key(peers[p], "port", "peer",
-                         f"{p} (site \"{site_name}\")", [int], "int")
+    r1, r2 = __check_key(peers[p], "port", [int])
     rl.append(r1)
     rl.append(r2)
     if r1.get_success() and r2.get_success():
@@ -265,39 +255,29 @@ def check_peer_integrity(peers: Peers, site_name: str, allow_ipv4: bool,
       rl.append(r)
 
     # Check redirect_all_traffic
-    r1, r2 = __check_key(peers[p], "redirect_all_traffic", "peer",
-                         f"{p} (site \"{site_name}\")", [dict], "dict")
+    r1, r2 = __check_key(peers[p], "redirect_all_traffic", [dict])
     rl.append(r1)
     rl.append(r2)
     if r1.get_success() and r2.get_success():
       if peers[p]["redirect_all_traffic"]:
-        r1, r2 = __check_key(
-          peers[p]["redirect_all_traffic"], "ipv4", "key",
-          f"ipv4 in \"redirect_all_traffic\" (peer {p} from site \"{site_name}\")",
-          [bool], "bool")
+        r1, r2 = __check_key(peers[p]["redirect_all_traffic"], "ipv4", [bool])
         rl.append(r1)
         rl.append(r2)
-        r1, r2 = __check_key(
-          peers[p]["redirect_all_traffic"], "ipv6", "key",
-          f"ipv6 in \"redirect_all_traffic\" (peer {p} from site \"{site_name}\")",
-          [bool], "bool")
+        r1, r2 = __check_key(peers[p]["redirect_all_traffic"], "ipv6", [bool])
         rl.append(r1)
         rl.append(r2)
 
     # Check post_up and post_down
-    r1, r2 = __check_key(peers[p], "post_up", "peer",
-                         f"{p} (site \"{site_name}\")", [str], "str")
+    r1, r2 = __check_key(peers[p], "post_up", [str])
     rl.append(r1)
     rl.append(r2)
     if r1.get_success() and r2.get_success():
-      r1, r2 = __check_key(peers[p], "post_down", "peer",
-                           f"{p} (site \"{site_name}\")", [str], "str")
+      r1, r2 = __check_key(peers[p], "post_down", [str])
       rl.append(r1)
       rl.append(r2)
 
     # Check ipv6_routing_fix
-    r1, r2 = __check_key(peers[p], "ipv6_routing_fix", "peer",
-                         f"{p} (site \"{site_name}\")", [bool], "bool")
+    r1, r2 = __check_key(peers[p], "ipv6_routing_fix", [bool])
     rl.append(r1)
     rl.append(r2)
 
@@ -308,8 +288,7 @@ def check_peer_integrity(peers: Peers, site_name: str, allow_ipv4: bool,
 
 def check_imported_settings(settings: Settings) -> Settings:
   # Update routines for old file versions
-  r1, r2 = __check_key(settings, "file_version", "key", "settings", [str],
-                       "str")
+  r1, r2 = __check_key(settings, "file_version", [str])
   if settings["file_version"] not in version_dict:
     raise DataIntegrityError(
       f"The settings are version {settings['file_version']}, which is currently not supported. Latest supported version is {settings_latest_version}"
@@ -337,12 +316,10 @@ def check_imported_settings(settings: Settings) -> Settings:
   # Data integrity check
 
   # Check keys
-  r1, r2 = __check_key(settings, "verbosity", "key", "settings", [int], "int")
-  r1, r2 = __check_key(settings, "sites_file_path", "key", "settings", [str],
-                       "str")
-  r1, r2 = __check_key(settings, "wg_config_path", "key", "settings", [str],
-                       "str")
-  r1, r2 = __check_key(settings, "editor", "key", "settings", [str], "str")
+  r1, r2 = __check_key(settings, "verbosity", [int])
+  r1, r2 = __check_key(settings, "sites_file_path", [str])
+  r1, r2 = __check_key(settings, "wg_config_path", [str])
+  r1, r2 = __check_key(settings, "editor", [str])
 
   return settings
 
@@ -805,15 +782,13 @@ class KeyDatatypeMessageContent(MessageContent):
 KeyDatatypeMessage = Message[KeyDatatypeMessageContent]
 
 
-def __check_key(d: dict, key: str, what_is_checked: str, dict_name: str,
-                datatypes: list, datatype_name: str) -> Tuple[Result, Result]:
+def __check_key(d: dict, key: str, datatypes: list) -> Tuple[Result, Result]:
   rk = Result()
   rd = Result()
 
-  rk = __check_key_presence(d, key, what_is_checked, dict_name, datatype_name)
+  rk = __check_key_presence(d, key)
   if rk.get_success():
-    rd = __check_datatype(d[key], what_is_checked, dict_name, datatypes,
-                          datatype_name)
+    rd = __check_datatype(d[key], key, datatypes)
   return (rd, rk)
 
 
@@ -822,8 +797,7 @@ def __check_key(d: dict, key: str, what_is_checked: str, dict_name: str,
 ##########################################################################################
 
 
-def __check_key_presence(d: dict, key: str, what_is_checked: str,
-                         dict_name: str, datatype_name: str) -> Result:
+def __check_key_presence(d: dict, key: str) -> Result:
   r = Result()
   try:
     d[key]
@@ -841,8 +815,7 @@ def __check_key_presence(d: dict, key: str, what_is_checked: str,
 ##########################################################################################
 
 
-def __check_datatype(o, what_is_checked: str, dict_name: str, datatypes: list,
-                     datatype_name: str) -> Result:
+def __check_datatype(o, key: str, datatypes: list) -> Result:
   r = Result()
   valid = False
   for d in datatypes:
@@ -857,7 +830,7 @@ def __check_datatype(o, what_is_checked: str, dict_name: str, datatypes: list,
         message_level=MESSAGE_LEVEL.ERROR,
         message=KeyDatatypeMessageContent(
           message_type=KEY_DATATYPE_MESSAGE_TYPE.DATATYPE_WRONG,
-          key=dict_name,
+          key=key,
           datatypes_target=datatypes,
           datatype_actual=type(o))))
   return r

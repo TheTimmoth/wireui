@@ -13,7 +13,6 @@ from .shared import get_new_peer_properties
 from .shared import get_populated_connection_table
 
 from ..library import ConnectionTable
-from ..library import PeerDoesExistError
 from ..library import PeerDoesNotExistError
 from ..library import WireUI
 
@@ -64,7 +63,6 @@ def edit_peer(site_name: str):
   leave_menu()
 
 
-# TODO: add the new features --> transition this function to edit_peer
 def rekey_peer(w: WireUI, site_name: str):
   print_header("Rekey a peer")
   peer_name = __get_peer_name(w, site_name, should_exist=True)
