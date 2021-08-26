@@ -13,10 +13,10 @@ from .console import leave_menu
 from .console import options_menu
 from .console import print_list
 from .console import print_message
-from .console import write_header
+from .console import print_header
 from .console import yes_no_menu
 
-from .results import check_aaips_result
+from .results import get_result_message
 
 from ..library import check_additional_allowed_ips
 from ..library import check_endpoint
@@ -31,8 +31,6 @@ from ..library import read_file
 from ..library import RedirectAllTraffic
 from ..library import WireUI
 
-from .results import check_endpoint_result, check_port_result
-
 
 def create_wireguard_config(w: WireUI, site_name: str):
   created_files = w.create_wireguard_config(site_name)
@@ -44,7 +42,7 @@ def create_wireguard_config(w: WireUI, site_name: str):
 def edit_peer_connections(w: WireUI, site_name: str):
   """ Edit the peer connection matrix """
 
-  write_header("Edit peer connections")
+  print_header("Edit peer connections")
 
   w = WireUI.get_instance()
   ct = get_populated_connection_table(site_name=site_name)
@@ -63,7 +61,7 @@ def edit_peer_connections(w: WireUI, site_name: str):
     # If a peer now has ingoing connections, ask for endpoint and port
     if not peer_old.ingoing_connected_peers and ct.get_ingoing_connected_peers(
         p):
-      write_header(f"Peer {p} (ingoing)")
+      print_header(f"Peer {p} (ingoing)")
       if peer_old.endpoint == "":
         endpoint = __get_endpoint(ct.get_ingoing_connected_peers(p))
       else:
@@ -86,7 +84,7 @@ def edit_peer_connections(w: WireUI, site_name: str):
     # If a peer now has outgoing connections, ask for persistent_keep_alive and redirect_all_traffic
     if not peer_old.outgoing_connected_peers and ct.get_outgoing_connected_peers(
         p):
-      write_header(f"Peer {p} (outgoing)")
+      print_header(f"Peer {p} (outgoing)")
       if peer_old.persistent_keep_alive == -1:
         persistent_keep_alive = __get_persistent_keep_alive()
       redirect_all_traffic = __get_redirect_all_traffic(allow_ipv4, allow_ipv6)
@@ -119,7 +117,7 @@ def edit_peer_connections(w: WireUI, site_name: str):
 def get_new_peer_properties(w: WireUI, site_name: str, peer_name: str,
                             dns: list, ct: ConnectionTable, allow_ipv4: bool,
                             allow_ipv6: bool) -> Peer:
-  write_header(f"Peer {peer_name}")
+  print_header(f"Peer {peer_name}")
 
   input(
     f"Collecting information for peer {peer_name}.\nPress ENTER to continue..."
@@ -174,7 +172,7 @@ def change_existing_peer_properties(w: WireUI, site_name: str, peer_name: str,
                                     dns: list, ct: ConnectionTable,
                                     allow_ipv4: bool,
                                     allow_ipv6: bool) -> Peer:
-  write_header(f"Peer {peer_name}")
+  print_header(f"Peer {peer_name}")
 
   old_peer = w.get_instance().get_peer(site_name=site_name,
                                        peer_name=peer_name)
@@ -246,14 +244,14 @@ def __get_endpoint(ingoing_connected_peers: list,
                    old_endpoint: Optional[str] = None) -> str:
   endpoint = old_endpoint
   while True:
-    write_header("Getting endpoint address")
+    print_header("Getting endpoint address")
     if endpoint:
       endpoint = input(
         f"Please enter the URL or IP address of the server: [{old_endpoint}] "
       ) or old_endpoint
     else:
       endpoint = input("Please enter the URL or IP address of the server: ")
-    s = check_endpoint_result(
+    s = get_result_message(
       check_endpoint(endpoint=endpoint,
                      ingoing_connected_peers=ingoing_connected_peers))
     if s:
@@ -268,7 +266,7 @@ def __get_endpoint(ingoing_connected_peers: list,
 def __get_port(ingoing_connected_peers: list,
                old_port: Optional[int] = None) -> int:
   while True:
-    write_header("Enter port number")
+    print_header("Enter port number")
     if old_port:
       port = input(
         f"Please enter the port the adapter should listen on: [{old_port}] "
@@ -281,7 +279,7 @@ def __get_port(ingoing_connected_peers: list,
       print_error(0, "Error: The port was not a valid integer.")
       continue
     else:
-      s = check_port_result(
+      s = get_result_message(
         check_port(port, ingoing_connected_peers=ingoing_connected_peers))
       if s:
         input(str(s) + "Press Enter to continue...")
@@ -292,7 +290,7 @@ def __get_port(ingoing_connected_peers: list,
 
 def __get_persistent_keep_alive(
     old_poersistent_keep_alive: Optional[int] = None) -> int:
-  write_header("NAT")
+  print_header("NAT")
   if old_poersistent_keep_alive:
     result = yes_no_menu("Is the peer behind a NAT?", True)
   else:
@@ -314,18 +312,18 @@ def __get_additional_allowed_ips(
   finished = False
   while not finished:
     if not aaips:
-      write_header("Additional routable IPs")
+      print_header("Additional routable IPs")
       if not yes_no_menu(
           "Do you want to add an additional AllowedIP network?"):
         break
       else:
-        write_header()
+        print_header()
         aaips = convert_str_to_list(
           input(
             "Please enter all additional ip networks that should be routed to the host (use ' ' as separation): "
           ))
 
-    write_header("Additional routable IPs")
+    print_header("Additional routable IPs")
     print_message(0,
                   "The following additional ip networks have been detected:")
     print_list(aaips)
@@ -336,7 +334,7 @@ def __get_additional_allowed_ips(
     r = check_additional_allowed_ips(additional_allowed_ips=aaips,
                                      allow_ipv4=allow_ipv4,
                                      allow_ipv6=allow_ipv6)
-    s = check_aaips_result(r)
+    s = get_result_message(r)
 
     if s:
       input(s + "Press ENTER to continue...")
@@ -350,7 +348,7 @@ def __get_additional_allowed_ips(
 def __get_post_up(old_post_up: Optional[str] = "") -> str:
   post_up = old_post_up
   while True:
-    write_header("PostUp")
+    print_header("PostUp")
     if post_up:
       print_message(0, f"PostUp command is: {post_up}")
       options = {
@@ -386,7 +384,7 @@ def __get_post_up(old_post_up: Optional[str] = "") -> str:
 def __get_post_down(old_post_down: Optional[str] = "") -> str:
   post_down = old_post_down
   while True:
-    write_header("PostDown")
+    print_header("PostDown")
     if post_down:
       print_message(0, f"PostDown command is: {post_down}")
       options = {
@@ -425,7 +423,7 @@ def __get_redirect_all_traffic(
   old_redirect_all_traffic: Optional[RedirectAllTraffic] = None
 ) -> RedirectAllTraffic:
 
-  write_header("Redirect traffic")
+  print_header("Redirect traffic")
 
   if old_redirect_all_traffic:
     redirect_ipv4 = old_redirect_all_traffic.ipv4

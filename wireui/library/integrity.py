@@ -8,7 +8,6 @@ import ipaddress
 from typing import List
 from typing import NamedTuple
 from typing import Optional
-from typing import Tuple
 
 from .helpers import convert_list_to_str
 from .helpers import get_default_dns
@@ -16,21 +15,16 @@ from .helpers import get_default_dns
 from .keys import get_keys
 
 from .typedefs import MESSAGE_LEVEL
-from .typedefs import AdditionalAllowedIPError
 from .typedefs import DataIntegrityError
-from .typedefs import DNSError
-from .typedefs import EndpointError
-from .typedefs import IPNetworkError
+from .typedefs import DataIntegrityMessage
+from .typedefs import DataIntegrityResult
 from .typedefs import Message
 from .typedefs import MessageContent
-from .typedefs import PeerConnectionError
-from .typedefs import PeerItems
 from .typedefs import Peers
-from .typedefs import PortError
 from .typedefs import RedirectAllTraffic
 from .typedefs import Result
+from .typedefs import ResultList
 from .typedefs import Settings
-from .typedefs import SiteItems
 from .typedefs import Sites
 
 version_dict = {
@@ -56,21 +50,34 @@ def check_wireguard():
 # 3. If the value is of type list or dict repeat step 2
 # 4. Make additional checks where applicable
 
+##########################################################################################
+# Check imported site
+##########################################################################################
 
-def check_imported_sites(sites: Sites) -> Sites:
+
+def check_imported_sites(sites: Sites) -> DataIntegrityResult:
   """ Check data integrity of the sites """
+
+  data_integrity_result = DataIntegrityResult()
+
   for s in sites:
+    data_integrity_message = DataIntegrityMessage()
+    site_result = ResultList(s)
+
     # Check config_version
     __check_key(sites[s], "config_version", "site", s, [str], "str")
+
+    version_old = sites[s]["config_version"]
+
+    # Newer version -> Error
     if sites[s]["config_version"] not in version_dict:
       raise DataIntegrityError(
         f"Site {s} is version {sites[s]['config_version']}, which is currently not supported. Latest supported version is {site_latest_version}"
       )
-    version_old = sites[s]["config_version"]
 
     # Update routines for old versions
-    if version_dict[sites[s]
-                    ["config_version"]] < version_dict[site_latest_version]:
+    elif version_dict[sites[s]
+                      ["config_version"]] < version_dict[site_latest_version]:
       # Update routines for config_version 0.1.0
       if sites[s]["config_version"] == "0.1.0":
         sites[s]["config_version"] = "0.1.1"
@@ -82,13 +89,6 @@ def check_imported_sites(sites: Sites) -> Sites:
       if sites[s]["config_version"] == "0.1.2":
         sites[s]["config_version"] = "0.1.3"
 
-    # Newer version -> Error
-    elif version_dict[sites[s]
-                      ["config_version"]] > version_dict[site_latest_version]:
-      raise DataIntegrityError(
-        f"Site {s} is version {sites[s]['config_version']}, which is currently not supported. Latest supported version is {site_latest_version}"
-      )
-
     # Data integrity check
 
     # Check ip_networks
@@ -96,8 +96,7 @@ def check_imported_sites(sites: Sites) -> Sites:
     for n in sites[s]["ip_networks"]:
       __check_datatype(n, "key", "ip_networks", [str], "str")
     r, allow_ipv4, allow_ipv6 = check_ip_networks(sites[s]["ip_networks"])
-    if not r.get_success():
-      raise IPNetworkError(f"Site: {s} - Key: \"ip_networks\"\n" + str(r))
+    site_result.append(r)
 
     # Check DNS servers
     __check_key(sites[s], "dns", "site", s, [list], "list")
@@ -107,20 +106,25 @@ def check_imported_sites(sites: Sites) -> Sites:
     r = check_dns(dns=sites[s]["dns"],
                   allow_ipv4=allow_ipv4,
                   allow_ipv6=allow_ipv6)
-    if not r.get_success():
-      raise DNSError(f"Site: {s} - Key: \"dns\"\n" + str(r))
+    site_result.append(r)
 
     # Check peers
-    sites[s]["peers"] = check_peer_integrity(Peers(sites[s]["peers"]), s,
-                                             allow_ipv4, allow_ipv6,
-                                             version_old)
+    peer_results = check_peer_integrity(Peers(sites[s]["peers"]), s,
+                                        allow_ipv4, allow_ipv6, version_old)
+    data_integrity_message.site_result = site_result
+    data_integrity_message.peer_results = peer_results
+    data_integrity_result.setitem(data_integrity_message)
 
-  return sites
+  return data_integrity_result
 
 
 def check_peer_integrity(peers: Peers, site_name: str, allow_ipv4: bool,
-                         allow_ipv6: bool, version_old: str) -> Peers:
+                         allow_ipv6: bool,
+                         version_old: str) -> List[ResultList]:
+
+  peer_results: List[ResultList] = []
   for p in peers:
+    rl = ResultList(p)
     # Update routines for old versions
     if version_dict[version_old] < version_dict[site_latest_version]:
       # Update routines for config_version 0.1.0
@@ -170,10 +174,7 @@ def check_peer_integrity(peers: Peers, site_name: str, allow_ipv4: bool,
       additional_allowed_ips=peers[p]["additional_allowed_ips"],
       allow_ipv4=allow_ipv4,
       allow_ipv6=allow_ipv6)
-    if not r.get_success():
-      raise AdditionalAllowedIPError(
-        "Site: {site_name} - Peer {p} - Key: \"additional_allowed_ips\"\n" +
-        str(r))
+    rl.append(r)
 
     # Check DNS servers
     __check_key(peers[p], "dns", "site", f"{p} (site \"{site_name}\")", [list],
@@ -183,8 +184,7 @@ def check_peer_integrity(peers: Peers, site_name: str, allow_ipv4: bool,
     r = check_dns(dns=peers[p]["dns"],
                   allow_ipv4=allow_ipv4,
                   allow_ipv6=allow_ipv6)
-    if not r.get_success():
-      raise DNSError(f"Site: {site_name} - Key: \"dns\"\n" + str(r))
+    rl.append(r)
 
     # Check ingoing and outgoing_connected_peers and main_peer
     # If peer p2 is outgoing_connected_peer of peer p1, p1 has to be ingoing_connected of peer p2.
@@ -195,23 +195,20 @@ def check_peer_integrity(peers: Peers, site_name: str, allow_ipv4: bool,
     __check_key(peers[p], "ingoing_connected_peers", "peer",
                 f"{p} (site \"{site_name}\")", [list], "list")
     r = check_peer_connections(p, peers)
-    if not r.get_success():
-      raise PeerConnectionError(
-        f"Site: {site_name} - Peer {p} - Peer connections\n" + str(r))
+    rl.append(r)
 
     # Check endpoint
     __check_key(peers[p], "endpoint", "peer", f"{p} (site \"{site_name}\")",
                 [str], "str")
     r = check_endpoint(peers[p]["endpoint"],
                        peers[p]["ingoing_connected_peers"])
-    if not r.get_success():
-      raise EndpointError(
-        f"Site: {site_name} - Peer {p} - key \"endpoint\"\n" + str(r))
+    rl.append(r)
 
     # Check port
     __check_key(peers[p], "port", "peer", f"{p} (site \"{site_name}\")", [int],
                 "int")
-    check_port(peers[p]["port"], peers[p]["ingoing_connected_peers"])
+    r = check_port(peers[p]["port"], peers[p]["ingoing_connected_peers"])
+    rl.append(r)
 
     # Check redirect_all_traffic
     __check_key(peers[p], "redirect_all_traffic", "peer",
@@ -236,7 +233,9 @@ def check_peer_integrity(peers: Peers, site_name: str, allow_ipv4: bool,
     __check_key(peers[p], "ipv6_routing_fix", "peer",
                 f"{p} (site \"{site_name}\")", [bool], "bool")
 
-  return peers
+    peer_results.append(rl)
+
+  return peer_results
 
 
 def check_imported_settings(settings: Settings) -> Settings:
@@ -282,17 +281,18 @@ def check_imported_settings(settings: Settings) -> Settings:
 ##########################################################################################
 
 
-class __IPNetworkMessageType(NamedTuple):
-  IP_NETWORK_INVALID: int
-  PREFIX_TOO_HIGH: int
-  SET_DEFAULT: int
+class IP_NETWORK_MESSAGE_TYPE():
+  @property
+  def IP_NETWORK_INVALID():
+    return 0
 
+  @property
+  def PREFIX_TOO_HIGH():
+    return 1
 
-IP_NETWORK_MESSAGE_TYPE = __IPNetworkMessageType(
-  IP_NETWORK_INVALID=0,
-  PREFIX_TOO_HIGH=1,
-  SET_DEFAULT=2,
-)
+  @property
+  def SET_DEFAULT():
+    return 2
 
 
 class IPNetworkMessageContent(MessageContent):
@@ -303,16 +303,14 @@ class IPNetworkMessageContent(MessageContent):
 
 IPNetworkMessage = Message[IPNetworkMessageContent]
 
-IPNetworkResult = Result[IPNetworkMessage]
-
 
 def check_ip_networks(
-  ip_networks: List[str],
-  default_ip_networks: Optional[List[str]] = []
-) -> tuple[IPNetworkResult, bool, bool]:
+    ip_networks: List[str],
+    default_ip_networks: Optional[List[str]] = []
+) -> tuple[Result, bool, bool]:
   allow_ipv4 = False
   allow_ipv6 = False
-  r = IPNetworkResult()
+  r = Result()
   for n in list(ip_networks):
     try:
       ip_network = ipaddress.ip_network(n)
@@ -366,19 +364,22 @@ def check_ip_networks(
 ##########################################################################################
 
 
-class __AAIPsMessageType(NamedTuple):
-  IP_NETWORK_INVALID: int
-  IPv4_NOT_ACTIVATED: int
-  IPv6_NOT_ACTIVATED: int
-  SET_DEFAULT: int
+class AAIPs_MESSAGE_TYPE():
+  @property
+  def IP_NETWORK_INVALID():
+    return 0
 
+  @property
+  def IPv4_NOT_ACTIVATED():
+    return 1
 
-AAIPs_MESSAGE_TYPE = __AAIPsMessageType(
-  IP_NETWORK_INVALID=0,
-  IPv4_NOT_ACTIVATED=1,
-  IPv6_NOT_ACTIVATED=2,
-  SET_DEFAULT=3,
-)
+  @property
+  def IPv6_NOT_ACTIVATED():
+    return 2
+
+  @property
+  def SET_DEFAULT():
+    return 3
 
 
 class AAIPsMessageContent(MessageContent):
@@ -388,16 +389,14 @@ class AAIPsMessageContent(MessageContent):
 
 AAIPsMessage = Message[AAIPsMessageContent]
 
-AAIPsResult = Result[AAIPsMessage]
-
 
 def check_additional_allowed_ips(
     additional_allowed_ips: List[str],
     allow_ipv4: bool,
     allow_ipv6: bool,
-    default_additional_allowed_ips: Optional[List[str]] = []) -> AAIPsResult:
+    default_additional_allowed_ips: Optional[List[str]] = []) -> Result:
 
-  r = AAIPsResult()
+  r = Result()
   for a in list(additional_allowed_ips):
     try:
       v = ipaddress.ip_network(a).version
@@ -438,17 +437,18 @@ def check_additional_allowed_ips(
 ##########################################################################################
 
 
-class __DNSMessageType(NamedTuple):
-  IP_ADDRESS_INVALID: int
-  IP_ADDRESS_VERSION: int
-  SET_DEFAULT: int
+class DNS_MESSAGE_TYPE():
+  @property
+  def IP_ADDRESS_INVALID():
+    return 0
 
+  @property
+  def IP_ADDRESS_VERSION():
+    return 1
 
-DNS_MESSAGE_TYPE = __DNSMessageType(
-  IP_ADDRESS_INVALID=0,
-  IP_ADDRESS_VERSION=1,
-  SET_DEFAULT=2,
-)
+  @property
+  def SET_DEFAULT():
+    return 2
 
 
 class DNSMessageContent(MessageContent):
@@ -458,14 +458,12 @@ class DNSMessageContent(MessageContent):
 
 DNSMessage = Message[DNSMessageContent]
 
-DNSResult = Result[DNSMessage]
-
 
 def check_dns(dns: List[str],
               allow_ipv4: bool,
               allow_ipv6: bool,
-              default_dns: Optional[List[str]] = None) -> DNSResult:
-  r = DNSResult()
+              default_dns: Optional[List[str]] = None) -> Result:
+  r = Result()
   if default_dns == None:
     default_dns = get_default_dns(allow_ipv4=allow_ipv4, allow_ipv6=allow_ipv6)
   for d in list(dns):
@@ -502,23 +500,30 @@ def check_dns(dns: List[str],
 ##########################################################################################
 
 
-class __PeerConnectionsMessageType(NamedTuple):
-  OUTGOING_PEER_NON_EXISTENCE: int
-  INGOING_PEER_NON_EXISTENCE: int
-  OUTGOING_PEER_NOT_INGOING: int
-  INGOING_PEER_NOT_OUTGOING: int
-  MAIN_PEER_NOT_OUTGOING: int
-  SET_DEFAULT: int
+class PEER_CONNECTIONS_MESSAGE_TYPE():
+  @property
+  def OUTGOING_PEER_NON_EXISTENCE():
+    return 0
 
+  @property
+  def INGOING_PEER_NON_EXISTENCE():
+    return 1
 
-PEER_CONNECTIONS_MESSAGE_TYPE = __PeerConnectionsMessageType(
-  OUTGOING_PEER_NON_EXISTENCE=0,
-  INGOING_PEER_NON_EXISTENCE=1,
-  OUTGOING_PEER_NOT_INGOING=2,
-  INGOING_PEER_NOT_OUTGOING=3,
-  MAIN_PEER_NOT_OUTGOING=4,
-  SET_DEFAULT=5,
-)
+  @property
+  def OUTGOING_PEER_NOT_INGOING():
+    return 2
+
+  @property
+  def INGOING_PEER_NOT_OUTGOING():
+    return 3
+
+  @property
+  def MAIN_PEER_NOT_OUTGOING():
+    return 4
+
+  @property
+  def SET_DEFAULT():
+    return 5
 
 
 class PeerConnectionsMessageContent(MessageContent):
@@ -529,12 +534,9 @@ class PeerConnectionsMessageContent(MessageContent):
 
 PeerConnectionsMessage = Message[PeerConnectionsMessageContent]
 
-PeerConnectionsResult = Result[PeerConnectionsMessage]
 
-
-def check_peer_connections(peer_name: str,
-                           peers: Peers) -> PeerConnectionsResult:
-  r = PeerConnectionsResult()
+def check_peer_connections(peer_name: str, peers: Peers) -> Result:
+  r = Result()
 
   # Check outgoing peers
   for outgoing_peer in peers[peer_name]["outgoing_connected_peers"]:
@@ -597,15 +599,14 @@ def check_peer_connections(peer_name: str,
 ##########################################################################################
 
 
-class __EndpointMessageType(NamedTuple):
-  ENDPOINT_INVALID: int
-  SET_DEFAULT: int
+class ENDPOINT_MESSAGE_TYPE():
+  @property
+  def ENDPOINT_INVALID():
+    return 0
 
-
-ENDPOINT_MESSAGE_TYPE = __EndpointMessageType(
-  ENDPOINT_INVALID=0,
-  SET_DEFAULT=1,
-)
+  @property
+  def SET_DEFAULT():
+    return 1
 
 
 class EndpointMessageContent(MessageContent):
@@ -615,13 +616,11 @@ class EndpointMessageContent(MessageContent):
 
 EndpointMessage = Message[EndpointMessageContent]
 
-EndpointResult = Result[EndpointMessage]
-
 
 def check_endpoint(endpoint: str,
                    ingoing_connected_peers: list,
-                   default_endpoint: Optional[str] = "") -> EndpointResult:
-  r = EndpointResult()
+                   default_endpoint: Optional[str] = "") -> Result:
+  r = Result()
 
   # If it is not an URL it has to be an IP address
   if ingoing_connected_peers and re.match(r"^(?:[a-zA-Z0-9]+[.])*[a-z]{2,12}$",
@@ -655,10 +654,14 @@ class __PortMessageType(NamedTuple):
   SET_DEFAULT: int
 
 
-PORT_MESSAGE_TYPE = __PortMessageType(
-  PORT_INVALID=0,
-  SET_DEFAULT=1,
-)
+class PORT_MESSAGE_TYPE():
+  @property
+  def PORT_INVALID():
+    return 0
+
+  @property
+  def SET_DEFAULT():
+    return 1
 
 
 class PortMessageContent(MessageContent):
@@ -668,13 +671,11 @@ class PortMessageContent(MessageContent):
 
 PortMessage = Message[PortMessageContent]
 
-PortResult = Result[PortMessage]
-
 
 def check_port(port: int,
                ingoing_connected_peers: list,
-               default_port: Optional[int] = 51820) -> PortResult:
-  r = PortResult()
+               default_port: Optional[int] = 51820) -> Result:
+  r = Result()
   if ingoing_connected_peers and (port < 1 or port > 65535):
     r.append(
       PortMessage(message_level=MESSAGE_LEVEL.ERROR,

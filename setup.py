@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
   name="wireui-TheTimmoth",
-  version="0.1.0b2",
+  version="0.1.0b3",
   author="Tim Schlottmann",
   author_email="coding@timsc.de",
   description="A tool for creating and managing wireguard configs",

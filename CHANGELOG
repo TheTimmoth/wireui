@@ -75,6 +75,7 @@ Release 0.1.0b1
   - [Library] [UI] Move integrity checks from UI into Library (backported from 0.2.0a1)
 * Known bugs and limitations:
   - Interface is not stable and can change drastically in future releases
+  - [UI] Wrong version string displayed ("0.1.0a" instead of "0.1.0b")
 
 Release 0.1.0b2
 * Added:
@@ -89,3 +90,14 @@ Release 0.1.0b2
 * Known bugs and limitations:
   - Interface is not stable and can change drastically in future releases
   - Program crashes with cryptic error message if there is an error in one of the JSON files
+  - [UI] Wrong version string displayed ("0.1.0a" instead of "0.1.0b")
+
+Release 0.1.0b3
+* Added:
+  -
+* Fixed:
+  - [UI] Version string is now displayed correctly ("0.1.0b" instead of "0.1.0a")
+* Changed:
+  - More readable error messages if there is an error in one of the JSON files
+* Known bugs and limitations:
+  - Interface is not stable and can change drastically in future releases

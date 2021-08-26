@@ -9,11 +9,11 @@ from .console import print_message
 from .console import print_error
 from .console import print_list
 from .console import yes_no_menu
-from .console import write_header
+from .console import print_header
 
 from .peers import edit_peer
 
-from .results import check_dns_result, check_ip_network_result
+from .results import get_result_message
 
 from .shared import create_wireguard_config
 from .shared import edit_connection_table
@@ -26,7 +26,6 @@ from ..library import convert_list_to_str
 from ..library import convert_str_to_list
 from ..library import get_default_dns
 from ..library import ConnectionTable
-from ..library import IPNetworkError
 from ..library import Site
 from ..library import SiteDoesExistError
 from ..library import SiteDoesNotExistError
@@ -40,7 +39,7 @@ class __IPNetworks(NamedTuple):
 
 
 def add_site(w: WireUI) -> str:
-  write_header("Add new site")
+  print_header("Add new site")
 
   site_name = get_site_name(w, should_exist=False)
 
@@ -76,7 +75,7 @@ def add_site(w: WireUI) -> str:
 
 
 def edit_site():
-  write_header("Edit site")
+  print_header("Edit site")
   w = WireUI.get_instance()
 
   site_name = get_site_name(w, True)
@@ -112,7 +111,7 @@ def edit_site():
 
   create_wireguard_config(w, site_name)
 
-  write_header()
+  print_header()
   if yes_no_menu("Do you want to edit peer properties?", False):
     leave_menu()
     edit_peer(site_name)
@@ -121,7 +120,7 @@ def edit_site():
 
 
 def delete_site(w: WireUI):
-  write_header("Delete a site")
+  print_header("Delete a site")
   site_name = get_site_name(w, should_exist=True)
   if yes_no_menu("Do you really want to delete the site \"" + site_name +
                  "\"?"):
@@ -136,7 +135,7 @@ def delete_site(w: WireUI):
 
 def get_site_name(w: WireUI, should_exist: bool) -> str:
   while True:
-    write_header("Enter site name")
+    print_header("Enter site name")
     __list_sites(w)
     name = input("Please enter the name of the site: ")
     exist = w.site_exists(name)
@@ -163,7 +162,7 @@ def __list_sites(w: WireUI):
 def __get_ip_networks(old_ip_networks: Optional[__IPNetworks] = __IPNetworks(
   True, True, [])) -> __IPNetworks:
 
-  write_header(f"Collecting IP information")
+  print_header(f"Collecting IP information")
 
   allow_ip = {
     4: old_ip_networks.allow_ipv4,
@@ -172,7 +171,7 @@ def __get_ip_networks(old_ip_networks: Optional[__IPNetworks] = __IPNetworks(
   ip_networks = old_ip_networks.ip_networks
 
   for v in [4, 6]:
-    write_header(f"IPv{v}")
+    print_header(f"IPv{v}")
     allow_ip[v] = yes_no_menu(f"Do you want to use IPv{v}?", allow_ip[v])
 
     default = ""
@@ -182,7 +181,7 @@ def __get_ip_networks(old_ip_networks: Optional[__IPNetworks] = __IPNetworks(
         ip_networks.remove(n)
 
     while allow_ip[v]:
-      write_header()
+      print_header()
 
       if default:
         if v == 4:
@@ -198,7 +197,7 @@ def __get_ip_networks(old_ip_networks: Optional[__IPNetworks] = __IPNetworks(
         ip_networks.append(input(s))
 
       r, _, _ = check_ip_networks(ip_networks)
-      s = check_ip_network_result(r)
+      s = get_result_message(r)
       if s:
         input(s + "Press ENTER to retry...")
         continue
@@ -223,7 +222,7 @@ def __get_dns(w: WireUI,
   dns = old_dns or get_default_dns(allow_ipv4=allow_ipv4,
                                    allow_ipv6=allow_ipv6)
   while not dns or not correct:
-    write_header("Collecting DNS informations")
+    print_header("Collecting DNS informations")
     correct = False
     if not dns:
       dns = convert_str_to_list(
@@ -237,8 +236,8 @@ def __get_dns(w: WireUI,
       if not correct:
         dns = convert_str_to_list(edit_string(convert_list_to_str(dns)))
     if dns:
-      write_header()
-      s = check_dns_result(
+      print_header()
+      s = get_result_message(
         check_dns(dns=dns,
                   allow_ipv4=allow_ipv4,
                   allow_ipv6=allow_ipv6,
@@ -252,7 +251,7 @@ def __get_dns(w: WireUI,
 
 
 def __get_peer_names(w: WireUI) -> Tuple[str, ...]:
-  write_header("Collecing peer names")
+  print_header("Collecing peer names")
   # Get peer names
   peer_names = input(
     "Please enter the name of the peers (use ' ' as separation): ")
@@ -263,7 +262,7 @@ def __get_peer_names(w: WireUI) -> Tuple[str, ...]:
 
   correct = False
   while not correct:
-    write_header()
+    print_header()
     print_list(peer_names)
     correct = yes_no_menu("Is everything correct?")
     if not correct:

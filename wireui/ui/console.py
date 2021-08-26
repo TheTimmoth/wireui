@@ -81,7 +81,7 @@ def yes_no_menu(string: str, default: Optional[bool] = None) -> bool:
 def options_menu(options: Dict[str, str],
                  default: Optional[str] = None) -> str:
   while True:
-    write_header()
+    print_header()
     print_message(0, "What do you want to do?")
     for k in options:
       print_message(0, f"{k}     {options[k]}")
@@ -104,7 +104,7 @@ def leave_menu():
   __menu_list.pop()
 
 
-def write_header(name: str = ""):
+def print_header(name: str = ""):
   clear_screen()
 
   print_message(0, f"{strings.name} - {strings.version}")

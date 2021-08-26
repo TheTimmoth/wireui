@@ -22,19 +22,14 @@ from .integrity import IP_NETWORK_MESSAGE_TYPE
 from .integrity import PORT_MESSAGE_TYPE
 from .integrity import AAIPsMessageContent
 from .integrity import AAIPsMessage
-from .integrity import AAIPsResult
 from .integrity import DNSMessage
 from .integrity import DNSMessageContent
-from .integrity import DNSResult
 from .integrity import EndpointMessageContent
 from .integrity import EndpointMessage
-from .integrity import EndpointResult
 from .integrity import IPNetworkMessage
 from .integrity import IPNetworkMessageContent
-from .integrity import IPNetworkResult
 from .integrity import PortMessage
 from .integrity import PortMessageContent
-from .integrity import PortResult
 
 from .io_ import read_file
 from .io_ import write_file
@@ -42,12 +37,8 @@ from .io_ import write_file
 from .keys import get_keys
 
 from .typedefs import MESSAGE_LEVEL
-from .typedefs import AdditionalAllowedIPError
 from .typedefs import ConnectionTable
 from .typedefs import DataIntegrityError
-from .typedefs import DNSError
-from .typedefs import EndpointError
-from .typedefs import IPNetworkError
 from .typedefs import JSONDecodeError
 from .typedefs import JsonDict
 from .typedefs import KeyDoesExistError
@@ -55,12 +46,11 @@ from .typedefs import KeyDoesNotExistError
 from .typedefs import Message
 from .typedefs import MessageContent
 from .typedefs import Keys
-from .typedefs import PeerConnectionError
 from .typedefs import PeerDoesExistError
 from .typedefs import PeerDoesNotExistError
 from .typedefs import PeerItems
-from .typedefs import PortError
 from .typedefs import Result
+from .typedefs import ResultList
 from .typedefs import SettingDoesExistError
 from .typedefs import SettingDoesNotExistError
 from .typedefs import Settings
@@ -100,22 +90,14 @@ __all__ = [
   "PORT_MESSAGE_TYPE",
   "AAIPsMessageContent",
   "AAIPsMessage",
-  "AAIPsResult",
-  "AdditionalAllowedIPError",
   "ConnectionTable",
   "DataIntegrityError",
-  "DNSError",
   "DNSMessageContent",
   "DNSMessage",
-  "DNSResult",
   "EndpointMessageContent",
   "EndpointMessage",
-  "EndpointResult",
-  "EndpointError",
-  "IPNetworkError",
   "IPNetworkMessage",
   "IPNetworkMessageContent",
-  "IPNetworkResult",
   "JSONDecodeError",
   "JsonDict",
   "Keys",
@@ -124,16 +106,14 @@ __all__ = [
   "Message",
   "MessageContent",
   "Peer",
-  "PeerConnectionError",
   "PeerDoesExistError",
   "PeerDoesNotExistError",
   "PeerItems",
-  "PortError",
   "PortMessage",
   "PortMessageContent",
-  "PortResult",
   "RedirectAllTraffic",
   "Result",
+  "ResultList",
   "Settings",
   "SettingDoesExistError",
   "SettingDoesNotExistError",

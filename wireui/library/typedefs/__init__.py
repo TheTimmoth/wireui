@@ -1,27 +1,26 @@
 from .dicts import JSONDecodeError
 from .dicts import JsonDict
 
-from .exceptions import AdditionalAllowedIPError
 from .exceptions import DataIntegrityError
-from .exceptions import DNSError
-from .exceptions import EndpointError
-from .exceptions import IPNetworkError
 from .exceptions import KeyDoesExistError
 from .exceptions import KeyDoesNotExistError
-from .exceptions import PeerConnectionError
 from .exceptions import PeerDoesExistError
 from .exceptions import PeerDoesNotExistError
-from .exceptions import PortError
 from .exceptions import SettingDoesExistError
 from .exceptions import SettingDoesNotExistError
 from .exceptions import SiteDoesExistError
 from .exceptions import SiteDoesNotExistError
 from .exceptions import WireguardNotFoundError
 
+from .list import BasicList
+
 from .result import Message
 from .result import MessageContent
 from .result import MESSAGE_LEVEL
 from .result import Result
+from .result import ResultList
+from .result import DataIntegrityMessage
+from .result import DataIntegrityResult
 
 from .peers import Keys
 from .peers import PeerItems
@@ -37,12 +36,11 @@ from .tables import ConnectionTable
 
 __all__ = [
   "MESSAGE_LEVEL",
-  "AdditionalAllowedIPError",
+  "BasicList",
   "ConnectionTable",
   "DataIntegrityError",
-  "DNSError",
-  "EndpointError",
-  "IPNetworkError",
+  "DataIntegrityMessage",
+  "DataIntegrityResult",
   "JSONDecodeError",
   "JsonDict",
   "Keys",
@@ -50,14 +48,13 @@ __all__ = [
   "KeyDoesNotExistError",
   "Message",
   "MessageContent",
-  "PeerConnectionError",
   "PeerItems",
   "PeerDoesExistError",
   "PeerDoesNotExistError",
   "Peers",
-  "PortError",
   "RedirectAllTraffic",
   "Result",
+  "ResultList",
   "SettingDoesExistError",
   "SettingDoesNotExistError",
   "Settings",
