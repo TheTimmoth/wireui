@@ -5,12 +5,9 @@
 import os
 import re
 import ipaddress
-from typing import Dict
-from typing import Iterable
 from typing import List
 from typing import NamedTuple
 from typing import Optional
-from typing import Tuple
 
 from .helpers import convert_list_to_str
 from .helpers import get_default_dns
@@ -19,6 +16,8 @@ from .keys import get_keys
 
 from .typedefs import MESSAGE_LEVEL
 from .typedefs import DataIntegrityError
+from .typedefs import DataIntegrityMessage
+from .typedefs import DataIntegrityResult
 from .typedefs import Message
 from .typedefs import MessageContent
 from .typedefs import Peers
@@ -56,55 +55,14 @@ def check_wireguard():
 ##########################################################################################
 
 
-class ImportedPeersResults():
-  def __init__(self):
-    self.d = {}
-
-  def add_results(self, peer_name: str, rl: ResultList):
-    self.d[peer_name] = rl
-
-  def get_peer_results(self, peer_name: str) -> ResultList:
-    return self.d[peer_name]
-
-  def get_peers(self) -> List[str]:
-    return list(self.d.keys())
-
-
-class ImportedSitesResults():
-  def __init__(self):
-    self.d = {}
-
-  def add_site_results(self, site_name: str, rl: ResultList):
-    try:
-      self.d[site_name]
-    except KeyError:
-      self.d[site_name] = {}
-    self.d[site_name]["site"] = rl
-
-  def get_sites(self) -> List[str]:
-    return list(self.d.keys())
-
-  def add_peer_results(self, site_name: str, ipr: ImportedPeersResults):
-    try:
-      self.d[site_name]
-    except KeyError:
-      self.d[site_name] = {}
-    self.d[site_name]["peers"] = ipr
-
-  def get_site_results(self, site_name: str) -> ResultList:
-    return self.d[site_name]["site"]
-
-  def get_peer_results(self, site_name: str) -> ImportedPeersResults:
-    return self.d[site_name]["peers"]
-
-
-def check_imported_sites(sites: Sites) -> ImportedSitesResults:
+def check_imported_sites(sites: Sites) -> DataIntegrityResult:
   """ Check data integrity of the sites """
 
-  isr = ImportedSitesResults()
+  data_integrity_result = DataIntegrityResult()
 
   for s in sites:
-    rl = ResultList()
+    data_integrity_message = DataIntegrityMessage()
+    site_result = ResultList(s)
 
     # Check config_version
     __check_key(sites[s], "config_version", "site", s, [str], "str")
@@ -138,7 +96,7 @@ def check_imported_sites(sites: Sites) -> ImportedSitesResults:
     for n in sites[s]["ip_networks"]:
       __check_datatype(n, "key", "ip_networks", [str], "str")
     r, allow_ipv4, allow_ipv6 = check_ip_networks(sites[s]["ip_networks"])
-    rl.append(r)
+    site_result.append(r)
 
     # Check DNS servers
     __check_key(sites[s], "dns", "site", s, [list], "list")
@@ -148,24 +106,25 @@ def check_imported_sites(sites: Sites) -> ImportedSitesResults:
     r = check_dns(dns=sites[s]["dns"],
                   allow_ipv4=allow_ipv4,
                   allow_ipv6=allow_ipv6)
-    rl.append(r)
+    site_result.append(r)
 
     # Check peers
-    ipr = check_peer_integrity(Peers(sites[s]["peers"]), s, allow_ipv4,
-                               allow_ipv6, version_old)
-    isr.add_peer_results(s, ipr)
-    isr.add_site_results(s, rl)
+    peer_results = check_peer_integrity(Peers(sites[s]["peers"]), s,
+                                        allow_ipv4, allow_ipv6, version_old)
+    data_integrity_message.site_result = site_result
+    data_integrity_message.peer_results = peer_results
+    data_integrity_result.setitem(data_integrity_message)
 
-  return isr
+  return data_integrity_result
 
 
 def check_peer_integrity(peers: Peers, site_name: str, allow_ipv4: bool,
                          allow_ipv6: bool,
-                         version_old: str) -> ImportedPeersResults:
+                         version_old: str) -> List[ResultList]:
 
-  ipr = ImportedPeersResults()
+  peer_results: List[ResultList] = []
   for p in peers:
-    rl = ResultList()
+    rl = ResultList(p)
     # Update routines for old versions
     if version_dict[version_old] < version_dict[site_latest_version]:
       # Update routines for config_version 0.1.0
@@ -274,9 +233,9 @@ def check_peer_integrity(peers: Peers, site_name: str, allow_ipv4: bool,
     __check_key(peers[p], "ipv6_routing_fix", "peer",
                 f"{p} (site \"{site_name}\")", [bool], "bool")
 
-    ipr.add_results(p, rl)
+    peer_results.append(rl)
 
-  return ipr
+  return peer_results
 
 
 def check_imported_settings(settings: Settings) -> Settings:

@@ -25,6 +25,8 @@ from .result import MessageContent
 from .result import MESSAGE_LEVEL
 from .result import Result
 from .result import ResultList
+from .result import DataIntegrityMessage
+from .result import DataIntegrityResult
 
 from .peers import Keys
 from .peers import PeerItems
@@ -44,6 +46,8 @@ __all__ = [
   "BasicList",
   "ConnectionTable",
   "DataIntegrityError",
+  "DataIntegrityMessage",
+  "DataIntegrityResult",
   "DNSError",
   "EndpointError",
   "IPNetworkError",

@@ -26,8 +26,6 @@ from .integrity import DNSMessage
 from .integrity import DNSMessageContent
 from .integrity import EndpointMessageContent
 from .integrity import EndpointMessage
-from .integrity import ImportedPeersResults
-from .integrity import ImportedSitesResults
 from .integrity import IPNetworkMessage
 from .integrity import IPNetworkMessageContent
 from .integrity import PortMessage
@@ -107,8 +105,6 @@ __all__ = [
   "EndpointMessageContent",
   "EndpointMessage",
   "EndpointError",
-  "ImportedPeersResults",
-  "ImportedSitesResults",
   "IPNetworkError",
   "IPNetworkMessage",
   "IPNetworkMessageContent",

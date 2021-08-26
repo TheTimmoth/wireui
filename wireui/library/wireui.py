@@ -13,7 +13,7 @@ from typing import Optional
 from .config import delete_config
 from .config import write_config
 
-from .integrity import ImportedSitesResults, check_additional_allowed_ips
+from .integrity import check_additional_allowed_ips
 from .integrity import check_dns
 from .integrity import check_endpoint
 from .integrity import check_imported_settings
@@ -23,6 +23,7 @@ from .integrity import check_port
 from .integrity import check_wireguard
 from .integrity import settings_latest_version
 from .integrity import site_latest_version
+from .integrity import DataIntegrityResult
 
 from .io_ import read_file
 from .io_ import write_file
@@ -117,10 +118,10 @@ class WireUI():
     check_imported_settings(self._settings)
     set_wg_exec(self.get_setting("wg_exec"))
     check_wireguard()
-    self.isr = check_imported_sites(self._sites)
+    self.data_integrity_result = check_imported_sites(self._sites)
 
-  def get_startup_result(self) -> ImportedSitesResults:
-    return self.isr
+  def get_startup_result(self) -> DataIntegrityResult:
+    return self.data_integrity_result
 
   def get_sites(self) -> list:
     """ Get all existing sites """

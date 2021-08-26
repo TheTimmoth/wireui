@@ -13,25 +13,26 @@ from ..library import WireUI
 
 def run_ui():
   w = WireUI.get_instance()
-  isr = w.get_startup_result()
+  data_integrity_result = w.get_startup_result()
 
-  print_header("Import Results")
-  s = ""
-  for site in isr.get_sites():
-    srl = isr.get_site_results(site)
+  if not data_integrity_result.success:
+    print_header("Import Results")
+    s = ""
+    for site in data_integrity_result:
+      data_integrity_message = data_integrity_result[site]
 
-    s += f"Site {site}:\n"
-    s += get_result_list_messages(srl)
+      s += f"Site {site}:\n"
+      s += get_result_list_messages(data_integrity_message.site_result)
 
-    for peer in isr.get_peer_results(site).get_peers():
-      prl = isr.get_peer_results(site).get_peer_results(peer)
+      for rl in data_integrity_message.peer_results:
+        s += f"Peer {rl.name}:\n"
+        s += get_result_list_messages(rl)
 
-      s += f"Peer {peer}:\n"
-      s += get_result_list_messages(prl)
+    print_error(0, s)
+    input("Press ENTER to continue...")
 
-  print_error(0, s)
-
-  register(WireUI.get_instance("./settings.json").write_settings_to_file)
-  register(WireUI.get_instance().write_sites_to_file)
-  set_verbosity(w.get_setting("verbosity"))
-  entrypoint_menu(w)
+  else:
+    register(WireUI.get_instance("./settings.json").write_settings_to_file)
+    register(WireUI.get_instance().write_sites_to_file)
+    set_verbosity(w.get_setting("verbosity"))
+    entrypoint_menu(w)
