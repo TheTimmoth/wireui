@@ -18,10 +18,13 @@ from .exceptions import SiteDoesExistError
 from .exceptions import SiteDoesNotExistError
 from .exceptions import WireguardNotFoundError
 
+from .list import BasicList
+
 from .result import Message
 from .result import MessageContent
 from .result import MESSAGE_LEVEL
 from .result import Result
+from .result import ResultList
 
 from .peers import Keys
 from .peers import PeerItems
@@ -38,6 +41,7 @@ from .tables import ConnectionTable
 __all__ = [
   "MESSAGE_LEVEL",
   "AdditionalAllowedIPError",
+  "BasicList",
   "ConnectionTable",
   "DataIntegrityError",
   "DNSError",
@@ -58,6 +62,7 @@ __all__ = [
   "PortError",
   "RedirectAllTraffic",
   "Result",
+  "ResultList",
   "SettingDoesExistError",
   "SettingDoesNotExistError",
   "Settings",

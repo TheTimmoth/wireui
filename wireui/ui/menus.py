@@ -3,7 +3,7 @@ from .console import leave_menu
 from .console import options_menu
 from .console import print_error
 from .console import print_message
-from .console import write_header
+from .console import print_header
 
 from .peers import add_peer, edit_peer
 from .peers import delete_peer
@@ -23,7 +23,7 @@ from ..library import WireUI
 
 def entrypoint_menu(w: WireUI):
   while True:
-    write_header("Main menu")
+    print_header("Main menu")
 
     options = {
       "1": "Create new site",
@@ -73,7 +73,7 @@ def entrypoint_menu(w: WireUI):
 def site_menu(w: WireUI, site_name: str):
   leave = False
   while not leave:
-    write_header(f"Site \"{site_name}\"")
+    print_header(f"Site \"{site_name}\"")
     peers_count = len(w.get_peer_names(site_name))
 
     # TODO: Remove this hint when editing is possible
@@ -114,7 +114,7 @@ def site_menu(w: WireUI, site_name: str):
 
 
 def __about():
-  write_header("About")
+  print_header("About")
   print_message(0, strings.name)
   print_message(0, strings.description)
   print_message(0, f"Version {strings.version}")

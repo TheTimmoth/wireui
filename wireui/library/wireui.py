@@ -13,7 +13,7 @@ from typing import Optional
 from .config import delete_config
 from .config import write_config
 
-from .integrity import check_additional_allowed_ips
+from .integrity import ImportedSitesResults, check_additional_allowed_ips
 from .integrity import check_dns
 from .integrity import check_endpoint
 from .integrity import check_imported_settings
@@ -23,10 +23,6 @@ from .integrity import check_port
 from .integrity import check_wireguard
 from .integrity import settings_latest_version
 from .integrity import site_latest_version
-from .integrity import DNS_MESSAGE_TYPE
-from .integrity import DNSMessage
-from .integrity import DNSMessageContent
-from .integrity import DNSResult
 
 from .io_ import read_file
 from .io_ import write_file
@@ -34,8 +30,6 @@ from .io_ import write_file
 from .keys import get_keys
 from .keys import set_wg_exec
 
-from .typedefs import MESSAGE_LEVEL
-from .typedefs import DataIntegrityError
 from .typedefs import JSONDecodeError
 from .typedefs import PeerItems
 from .typedefs import PeerDoesExistError
@@ -123,7 +117,10 @@ class WireUI():
     check_imported_settings(self._settings)
     set_wg_exec(self.get_setting("wg_exec"))
     check_wireguard()
-    check_imported_sites(self._sites)
+    self.isr = check_imported_sites(self._sites)
+
+  def get_startup_result(self) -> ImportedSitesResults:
+    return self.isr
 
   def get_sites(self) -> list:
     """ Get all existing sites """

@@ -3,7 +3,7 @@ from .console import leave_menu
 from .console import print_error
 from .console import print_list
 from .console import print_message
-from .console import write_header
+from .console import print_header
 from .console import yes_no_menu
 
 from .shared import change_existing_peer_properties
@@ -19,7 +19,7 @@ from ..library import WireUI
 
 
 def add_peer(w: WireUI, site_name: str, peer_name: Optional[str] = None):
-  write_header("Create new peer")
+  print_header("Create new peer")
 
   if not peer_name:
     peer_name = __get_peer_name(w, site_name, should_exist=False)
@@ -40,7 +40,7 @@ def add_peer(w: WireUI, site_name: str, peer_name: Optional[str] = None):
 
 
 def edit_peer(site_name: str):
-  write_header("Edit peer")
+  print_header("Edit peer")
 
   w = WireUI.get_instance()
 
@@ -57,7 +57,7 @@ def edit_peer(site_name: str):
 
   create_wireguard_config(w, site_name)
 
-  write_header()
+  print_header()
   if yes_no_menu("Do you want to edit another peer", False):
     edit_peer(site_name)
 
@@ -66,7 +66,7 @@ def edit_peer(site_name: str):
 
 # TODO: add the new features --> transition this function to edit_peer
 def rekey_peer(w: WireUI, site_name: str):
-  write_header("Rekey a peer")
+  print_header("Rekey a peer")
   peer_name = __get_peer_name(w, site_name, should_exist=True)
   try:
     w.rekey_peer(site_name, peer_name)
@@ -78,7 +78,7 @@ def rekey_peer(w: WireUI, site_name: str):
 
 
 def delete_peer(w: WireUI, site_name: str):
-  write_header("Delete a peer")
+  print_header("Delete a peer")
   peer_name = __get_peer_name(w, site_name, should_exist=True)
   if yes_no_menu(f"Do you really want to delete peer {peer_name}?"):
     try:
@@ -93,7 +93,7 @@ def delete_peer(w: WireUI, site_name: str):
 
 def __get_peer_name(w: WireUI, site_name: str, should_exist: bool) -> str:
   while True:
-    write_header("Get peer name")
+    print_header("Get peer name")
     __list_peers(w, site_name)
     peer_name = input("Please enter the name of the peer: ")
     exist = w.peer_exists(site_name, peer_name)

@@ -1,6 +1,8 @@
 from collections import UserList
 from typing import Generic, Iterable, List, NamedTuple, Optional, TypeVar
 
+from .list import BasicList
+
 
 class __MessageLevel(NamedTuple):
   ERROR: int
@@ -16,18 +18,18 @@ MESSAGE_LEVEL = __MessageLevel(
 
 MessageContent = NamedTuple
 
-U = TypeVar("U")
+T = TypeVar("T")
 
 
-class Message(Generic[U]):
-  def __init__(self, message_level: int, message: U):
+class Message(Generic[T]):
+  def __init__(self, message_level: int, message: T):
     self.message_level: int = message_level
-    self.content: U = message
+    self.content: T = message
 
   def get_message_level(self) -> int:
     return self.message_level
 
-  def get_message(self) -> U:
+  def get_message(self) -> T:
     return self.content
 
   def __str__(self) -> str:
@@ -37,13 +39,7 @@ class Message(Generic[U]):
     return f"{type(self).__name__}{self.__str__()}"
 
 
-T = TypeVar("T")
-
-
-class Result(Generic[T]):
-  def __init__(self, initlist: Optional[Iterable] = []):
-    self.l: List[T] = list(initlist)
-
+class Result(BasicList[Message]):
   def get_success(self, warnings_as_errors: Optional[bool] = False):
     for m in self.l:
       if m.message_level == MESSAGE_LEVEL.ERROR or (
@@ -51,23 +47,10 @@ class Result(Generic[T]):
         return False
     return True
 
-  def append(self, item: T):
-    self.l.append(item)
 
-  def __getitem__(self, index: int) -> T:
-    return self.l[index]
-
-  def __setitem__(self, index: int, value: T):
-    self.l[index] = value
-
-  def __len__(self) -> int:
-    return len(self.l)
-
-  def __str__(self) -> str:
-    return str(self.l)
-
-  def __repr__(self) -> str:
-    return f"{type(self).__name__}({self.__str__()})"
-
-  def __bool__(self) -> bool:
-    return bool(self.l)
+class ResultList(BasicList[Result]):
+  def get_success(self, warnings_as_errors: Optional[bool] = False):
+    success = True
+    for r in self.l:
+      success |= r.get_success()
+    return success
