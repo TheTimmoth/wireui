@@ -1,3 +1,5 @@
+from typing import Optional
+
 from ..library import AAIPs_MESSAGE_TYPE
 from ..library import DNS_MESSAGE_TYPE
 from ..library import ENDPOINT_MESSAGE_TYPE
@@ -19,26 +21,30 @@ from ..library import Result
 from ..library import ResultList
 
 
-def get_result_list_messages(rl: ResultList):
+def get_result_list_messages(rl: ResultList, start: Optional[str] = ""):
   s = ""
   for r in rl:
-    s += get_result_message(r)
+    s += get_result_message(r, start)
   return s
 
 
-def get_result_message(r: Result) -> str:
+def get_result_message(r: Result, start: Optional[str] = "") -> str:
   s = ""
   for m in r:
+    t = start
     if isinstance(m.get_message(), DNSMessageContent):
-      s += __get_dns_message(m)
+      t += __get_dns_message(m)
     elif isinstance(m.get_message(), IPNetworkMessageContent):
-      s += __get_ip_network_message(m)
+      t += __get_ip_network_message(m)
     elif isinstance(m.get_message(), EndpointMessageContent):
-      s += __get_endpoint_message(m)
+      t += __get_endpoint_message(m)
     elif isinstance(m.get_message(), PortMessageContent):
-      s += __get_port_message(m)
+      t += __get_port_message(m)
     elif isinstance(m.get_message(), AAIPsMessageContent):
-      s += __get_aaips_message(m)
+      t += __get_aaips_message(m)
+    if t == start:
+      t = ""
+    s += t
   return s
 
 

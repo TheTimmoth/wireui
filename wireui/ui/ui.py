@@ -21,15 +21,18 @@ def run_ui():
     for site in data_integrity_result:
       data_integrity_message = data_integrity_result[site]
 
-      s += f"Site {site}:\n"
-      s += get_result_list_messages(data_integrity_message.site_result)
+      if not data_integrity_message.get_success():
+        s += f"Site {site}:\n"
+        s += get_result_list_messages(data_integrity_message.site_result,
+                                      "|- ")
 
-      for rl in data_integrity_message.peer_results:
-        s += f"Peer {rl.name}:\n"
-        s += get_result_list_messages(rl)
-
+        for rl in data_integrity_message.peer_results:
+          if not rl.get_success():
+            s += f"|- Peer {rl.name}:\n"
+            s += get_result_list_messages(rl, "   |- ")
+    s = s[:-1]
     print_error(0, s)
-    input("Press ENTER to continue...")
+    input("Press ENTER to exit...")
 
   else:
     register(WireUI.get_instance("./settings.json").write_settings_to_file)
