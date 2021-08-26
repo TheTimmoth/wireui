@@ -103,22 +103,13 @@ class DataIntegrityResult(UserDict):
     self.__warnings_as_errors = False
     super().__init__()
 
-  @property
-  def success(self):
+  def get_success(self, warnings_as_errors: Optional[bool] = False):
     success = True
     for site in self.data:
-      success &= self.data[site].get_success(self.warnings_as_errors)
+      success &= self.data[site].get_success(warnings_as_errors)
       if not success:
         return success
     return success
-
-  @property
-  def warnings_as_errors(self):
-    return self.__warnings_as_errors
-
-  @warnings_as_errors.setter
-  def warnings_as_errors(self, warnings_as_errors: bool):
-    self.__warnings_as_errors = warnings_as_errors
 
   def setitem(self, data_integrity_message: DataIntegrityMessage):
     return super().__setitem__(data_integrity_message.name,

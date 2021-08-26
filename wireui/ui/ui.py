@@ -13,13 +13,12 @@ from ..library import WireUI
 
 def run_ui():
   w = WireUI.get_instance()
-  data_integrity_result = w.get_startup_result()
 
-  if not data_integrity_result.success:
+  if not w.startup_result.get_success():
     print_header("Import Results")
     s = ""
-    for site in data_integrity_result:
-      data_integrity_message = data_integrity_result[site]
+    for site in w.startup_result:
+      data_integrity_message = w.startup_result[site]
 
       if not data_integrity_message.get_success():
         s += f"Site {site}:\n"

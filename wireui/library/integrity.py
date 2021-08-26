@@ -281,17 +281,18 @@ def check_imported_settings(settings: Settings) -> Settings:
 ##########################################################################################
 
 
-class __IPNetworkMessageType(NamedTuple):
-  IP_NETWORK_INVALID: int
-  PREFIX_TOO_HIGH: int
-  SET_DEFAULT: int
+class IP_NETWORK_MESSAGE_TYPE():
+  @property
+  def IP_NETWORK_INVALID():
+    return 0
 
+  @property
+  def PREFIX_TOO_HIGH():
+    return 1
 
-IP_NETWORK_MESSAGE_TYPE = __IPNetworkMessageType(
-  IP_NETWORK_INVALID=0,
-  PREFIX_TOO_HIGH=1,
-  SET_DEFAULT=2,
-)
+  @property
+  def SET_DEFAULT():
+    return 2
 
 
 class IPNetworkMessageContent(MessageContent):
@@ -363,19 +364,22 @@ def check_ip_networks(
 ##########################################################################################
 
 
-class __AAIPsMessageType(NamedTuple):
-  IP_NETWORK_INVALID: int
-  IPv4_NOT_ACTIVATED: int
-  IPv6_NOT_ACTIVATED: int
-  SET_DEFAULT: int
+class AAIPs_MESSAGE_TYPE():
+  @property
+  def IP_NETWORK_INVALID():
+    return 0
 
+  @property
+  def IPv4_NOT_ACTIVATED():
+    return 1
 
-AAIPs_MESSAGE_TYPE = __AAIPsMessageType(
-  IP_NETWORK_INVALID=0,
-  IPv4_NOT_ACTIVATED=1,
-  IPv6_NOT_ACTIVATED=2,
-  SET_DEFAULT=3,
-)
+  @property
+  def IPv6_NOT_ACTIVATED():
+    return 2
+
+  @property
+  def SET_DEFAULT():
+    return 3
 
 
 class AAIPsMessageContent(MessageContent):
@@ -433,17 +437,18 @@ def check_additional_allowed_ips(
 ##########################################################################################
 
 
-class __DNSMessageType(NamedTuple):
-  IP_ADDRESS_INVALID: int
-  IP_ADDRESS_VERSION: int
-  SET_DEFAULT: int
+class DNS_MESSAGE_TYPE():
+  @property
+  def IP_ADDRESS_INVALID():
+    return 0
 
+  @property
+  def IP_ADDRESS_VERSION():
+    return 1
 
-DNS_MESSAGE_TYPE = __DNSMessageType(
-  IP_ADDRESS_INVALID=0,
-  IP_ADDRESS_VERSION=1,
-  SET_DEFAULT=2,
-)
+  @property
+  def SET_DEFAULT():
+    return 2
 
 
 class DNSMessageContent(MessageContent):
@@ -495,23 +500,30 @@ def check_dns(dns: List[str],
 ##########################################################################################
 
 
-class __PeerConnectionsMessageType(NamedTuple):
-  OUTGOING_PEER_NON_EXISTENCE: int
-  INGOING_PEER_NON_EXISTENCE: int
-  OUTGOING_PEER_NOT_INGOING: int
-  INGOING_PEER_NOT_OUTGOING: int
-  MAIN_PEER_NOT_OUTGOING: int
-  SET_DEFAULT: int
+class PEER_CONNECTIONS_MESSAGE_TYPE():
+  @property
+  def OUTGOING_PEER_NON_EXISTENCE():
+    return 0
 
+  @property
+  def INGOING_PEER_NON_EXISTENCE():
+    return 1
 
-PEER_CONNECTIONS_MESSAGE_TYPE = __PeerConnectionsMessageType(
-  OUTGOING_PEER_NON_EXISTENCE=0,
-  INGOING_PEER_NON_EXISTENCE=1,
-  OUTGOING_PEER_NOT_INGOING=2,
-  INGOING_PEER_NOT_OUTGOING=3,
-  MAIN_PEER_NOT_OUTGOING=4,
-  SET_DEFAULT=5,
-)
+  @property
+  def OUTGOING_PEER_NOT_INGOING():
+    return 2
+
+  @property
+  def INGOING_PEER_NOT_OUTGOING():
+    return 3
+
+  @property
+  def MAIN_PEER_NOT_OUTGOING():
+    return 4
+
+  @property
+  def SET_DEFAULT():
+    return 5
 
 
 class PeerConnectionsMessageContent(MessageContent):
@@ -587,15 +599,14 @@ def check_peer_connections(peer_name: str, peers: Peers) -> Result:
 ##########################################################################################
 
 
-class __EndpointMessageType(NamedTuple):
-  ENDPOINT_INVALID: int
-  SET_DEFAULT: int
+class ENDPOINT_MESSAGE_TYPE():
+  @property
+  def ENDPOINT_INVALID():
+    return 0
 
-
-ENDPOINT_MESSAGE_TYPE = __EndpointMessageType(
-  ENDPOINT_INVALID=0,
-  SET_DEFAULT=1,
-)
+  @property
+  def SET_DEFAULT():
+    return 1
 
 
 class EndpointMessageContent(MessageContent):
@@ -643,10 +654,14 @@ class __PortMessageType(NamedTuple):
   SET_DEFAULT: int
 
 
-PORT_MESSAGE_TYPE = __PortMessageType(
-  PORT_INVALID=0,
-  SET_DEFAULT=1,
-)
+class PORT_MESSAGE_TYPE():
+  @property
+  def PORT_INVALID():
+    return 0
+
+  @property
+  def SET_DEFAULT():
+    return 1
 
 
 class PortMessageContent(MessageContent):

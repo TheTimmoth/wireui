@@ -37,12 +37,8 @@ from .io_ import write_file
 from .keys import get_keys
 
 from .typedefs import MESSAGE_LEVEL
-from .typedefs import AdditionalAllowedIPError
 from .typedefs import ConnectionTable
 from .typedefs import DataIntegrityError
-from .typedefs import DNSError
-from .typedefs import EndpointError
-from .typedefs import IPNetworkError
 from .typedefs import JSONDecodeError
 from .typedefs import JsonDict
 from .typedefs import KeyDoesExistError
@@ -50,11 +46,9 @@ from .typedefs import KeyDoesNotExistError
 from .typedefs import Message
 from .typedefs import MessageContent
 from .typedefs import Keys
-from .typedefs import PeerConnectionError
 from .typedefs import PeerDoesExistError
 from .typedefs import PeerDoesNotExistError
 from .typedefs import PeerItems
-from .typedefs import PortError
 from .typedefs import Result
 from .typedefs import ResultList
 from .typedefs import SettingDoesExistError
@@ -96,16 +90,12 @@ __all__ = [
   "PORT_MESSAGE_TYPE",
   "AAIPsMessageContent",
   "AAIPsMessage",
-  "AdditionalAllowedIPError",
   "ConnectionTable",
   "DataIntegrityError",
-  "DNSError",
   "DNSMessageContent",
   "DNSMessage",
   "EndpointMessageContent",
   "EndpointMessage",
-  "EndpointError",
-  "IPNetworkError",
   "IPNetworkMessage",
   "IPNetworkMessageContent",
   "JSONDecodeError",
@@ -116,11 +106,9 @@ __all__ = [
   "Message",
   "MessageContent",
   "Peer",
-  "PeerConnectionError",
   "PeerDoesExistError",
   "PeerDoesNotExistError",
   "PeerItems",
-  "PortError",
   "PortMessage",
   "PortMessageContent",
   "RedirectAllTraffic",

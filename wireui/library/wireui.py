@@ -118,10 +118,11 @@ class WireUI():
     check_imported_settings(self._settings)
     set_wg_exec(self.get_setting("wg_exec"))
     check_wireguard()
-    self.data_integrity_result = check_imported_sites(self._sites)
+    self.__data_integrity_result = check_imported_sites(self._sites)
 
-  def get_startup_result(self) -> DataIntegrityResult:
-    return self.data_integrity_result
+  @property
+  def startup_result(self) -> DataIntegrityResult:
+    return self.__data_integrity_result
 
   def get_sites(self) -> list:
     """ Get all existing sites """

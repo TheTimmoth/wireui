@@ -26,7 +26,6 @@ from ..library import convert_list_to_str
 from ..library import convert_str_to_list
 from ..library import get_default_dns
 from ..library import ConnectionTable
-from ..library import IPNetworkError
 from ..library import Site
 from ..library import SiteDoesExistError
 from ..library import SiteDoesNotExistError

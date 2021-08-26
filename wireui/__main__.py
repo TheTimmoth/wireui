@@ -15,6 +15,8 @@ from .ui import run_ui
 
 
 def main():
+  w = WireUI.get_instance(".\settings.json")
+
   run_ui()
 
 
