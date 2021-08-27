@@ -13,13 +13,14 @@ from .shared import get_new_peer_properties
 from .shared import get_populated_connection_table
 
 from ..library import ConnectionTable
-from ..library import PeerDoesExistError
 from ..library import PeerDoesNotExistError
 from ..library import WireUI
 
+from ..shared import strings
+
 
 def add_peer(w: WireUI, site_name: str, peer_name: Optional[str] = None):
-  print_header("Create new peer")
+  print_header(f"{strings['peer_actions']['add_peer_header']}")
 
   if not peer_name:
     peer_name = __get_peer_name(w, site_name, should_exist=False)
@@ -40,7 +41,7 @@ def add_peer(w: WireUI, site_name: str, peer_name: Optional[str] = None):
 
 
 def edit_peer(site_name: str):
-  print_header("Edit peer")
+  print_header(f"{strings['peer_actions']['edit_peer_header']}")
 
   w = WireUI.get_instance()
 
@@ -58,34 +59,27 @@ def edit_peer(site_name: str):
   create_wireguard_config(w, site_name)
 
   print_header()
-  if yes_no_menu("Do you want to edit another peer", False):
+  if yes_no_menu(f"{strings['peer_actions']['edit_peer_another_yes_no']}",
+                 False):
     edit_peer(site_name)
 
   leave_menu()
 
 
-# TODO: add the new features --> transition this function to edit_peer
 def rekey_peer(w: WireUI, site_name: str):
-  print_header("Rekey a peer")
+  print_header(f"{strings['peer_actions']['rekey_peer_header']}")
   peer_name = __get_peer_name(w, site_name, should_exist=True)
-  try:
-    w.rekey_peer(site_name, peer_name)
-  except PeerDoesNotExistError:
-    print_error(0, "Error: Peer does not exist. Do nothing...")
-  else:
-    create_wireguard_config(w, site_name)
+  w.rekey_peer(site_name, peer_name)
+  create_wireguard_config(w, site_name)
   leave_menu()
 
 
 def delete_peer(w: WireUI, site_name: str):
-  print_header("Delete a peer")
+  print_header(f"{strings['peer_actions']['delete_peer_header']}")
   peer_name = __get_peer_name(w, site_name, should_exist=True)
-  if yes_no_menu(f"Do you really want to delete peer {peer_name}?"):
-    try:
-      w.delete_peer(site_name, peer_name)
-    except PeerDoesNotExistError:
-      print_error(0, "Error: Peer does not exist. Do nothing...")
-
+  if yes_no_menu(
+      f"{strings['peer_actions']['delete_peer_yes_no']}".format(peer_name)):
+    w.delete_peer(site_name, peer_name)
   edit_peer_connections(w, site_name)
   create_wireguard_config(w, site_name)
   leave_menu()
@@ -93,24 +87,28 @@ def delete_peer(w: WireUI, site_name: str):
 
 def __get_peer_name(w: WireUI, site_name: str, should_exist: bool) -> str:
   while True:
-    print_header("Get peer name")
+    print_header(f"{strings['peer_actions']['peer_name_header']}")
     __list_peers(w, site_name)
-    peer_name = input("Please enter the name of the peer: ")
+    peer_name = input(f"{strings['peer_actions']['peer_name_enter']}")
     exist = w.peer_exists(site_name, peer_name)
     if (should_exist and exist) or (not should_exist and not exist):
       leave_menu()
       return peer_name
     elif should_exist and not exist:
-      print_error(0, f"Error: {peer_name} does not exist.")
+      print_error(
+        0, f"{strings['peer_actions']['peer_name_not_exists_error']}".format(
+          peer_name))
     elif not should_exist and exist:
-      print_error(0, f"Error: {peer_name} does already exist.")
+      print_error(
+        0, f"{strings['peer_actions']['peer_name_exists_error']}".format(
+          peer_name))
     leave_menu()
 
 
 def __list_peers(w: WireUI, site_name: str) -> int:
   peers = w.get_peer_names(site_name)
   if peers:
-    print_message(0, "The following peers already exist:")
+    print_message(0, f"{strings['peer_actions']['list_peers']}")
     print_list(peers)
   else:
-    print_message(0, "There are currently no peers.")
+    print_message(0, f"{strings['peer_actions']['list_peers_empty']}")

@@ -3,7 +3,7 @@ import os
 
 def write_file(path: str, s: str = "") -> str:
   """ Save a string to a file """
-  with open(path, "w") as f:
+  with open(path, "w", encoding="utf-8") as f:
     f.write(s)
     f.flush()
   return path
@@ -12,10 +12,13 @@ def write_file(path: str, s: str = "") -> str:
 def read_file(path: str) -> str:
   """ Get the content of a file """
   try:
-    with open(path, "r") as f:
+    with open(path, "r", encoding="utf-8") as f:
       return f.read()
   except FileNotFoundError:
     return ""
+  except UnicodeDecodeError:
+    with open(path, "r") as f:
+      return f.read()
 
 
 # def write_jsonfile(path: str, d: JsonDict):

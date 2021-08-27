@@ -13,7 +13,7 @@ from typing import Optional
 
 from .elements import vline
 
-from ..library import strings
+from ..shared import strings
 
 __menu_list = []
 __verbosity = 2
@@ -60,35 +60,41 @@ def print_list(l: List[AnyStr]):
 def yes_no_menu(string: str, default: Optional[bool] = None) -> bool:
   valid = False
   while not valid:
+    s = string + f" {strings['console']['yes_no_input']}".format(
+      strings['misc']['yes_abbr'], strings['misc']['no_abbr'])
     if default != None:
       if default:
-        default = "y"
+        default = f"{strings['misc']['yes_abbr']}"
       else:
-        default = "n"
-      choice = input(string +
-                     f" Please type \"y\" or \"n\": [{default}] ") or default
-    else:
-      choice = input(string + " Please type \"y\" or \"n\": ")
-    if choice == "y" or choice == True:
+        default = f"{strings['misc']['no_abbr']}"
+      s += f"[{default}] "
+    choice = input(s) or default
+    if choice == strings['misc']['yes_abbr'] or choice == True:
       choice = True
       valid = True
-    elif choice == "n" or choice == False:
+    elif choice == strings['misc']['no_abbr'] or choice == False:
       choice = False
       valid = True
   return choice
 
 
 def options_menu(options: Dict[str, str],
-                 default: Optional[str] = None) -> str:
+                 default: Optional[str] = None,
+                 order: Optional[List[str]] = None) -> str:
   while True:
     print_header()
-    print_message(0, "What do you want to do?")
-    for k in options:
-      print_message(0, f"{k}     {options[k]}")
-    if default:
-      choice = input(f" Please choose an option: [{default}] ") or default
+    print_message(0, f"{strings['console']['options_menu_header']}")
+    if order:
+      for k in order:
+        print_message(0, f"{k}     {options[k]}")
     else:
-      choice = input(f" Please choose an option: ")
+      for k in options:
+        print_message(0, f"{k}     {options[k]}")
+    if default:
+      choice = input(
+        f"{strings['console']['options_menu_choose']} [{default}] ") or default
+    else:
+      choice = input(f"{strings['console']['options_menu_choose']} ")
     if choice in options:
       return choice
 
@@ -107,7 +113,10 @@ def leave_menu():
 def print_header(name: str = ""):
   clear_screen()
 
-  print_message(0, f"{strings.name} - {strings.version}")
+  print_message(
+    0,
+    f"{strings['app_information']['name']} - {strings['app_information']['version']}"
+  )
   print_message(0, vline())
 
   # It is assumed that all later menus are closed if name is already in list

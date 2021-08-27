@@ -1,5 +1,6 @@
 from .dicts import JSONDecodeError
 from .dicts import JsonDict
+from .dicts import ReadOnlyJsonDict
 
 from .exceptions import DataIntegrityError
 from .exceptions import KeyDoesExistError
@@ -32,12 +33,18 @@ from .settings import Settings
 from .sites import SiteItems
 from .sites import Sites
 
+from .tables import CONNECTION_TABLE_MESSAGE_TYPE
 from .tables import ConnectionTable
+from .tables import ConnectionTableMessage
+from .tables import ConnectionTableMessageContent
 
 __all__ = [
   "MESSAGE_LEVEL",
   "BasicList",
+  "CONNECTION_TABLE_MESSAGE_TYPE",
   "ConnectionTable",
+  "ConnectionTableMessage",
+  "ConnectionTableMessageContent",
   "DataIntegrityError",
   "DataIntegrityMessage",
   "DataIntegrityResult",
@@ -52,6 +59,7 @@ __all__ = [
   "PeerDoesExistError",
   "PeerDoesNotExistError",
   "Peers",
+  "ReadOnlyJsonDict",
   "RedirectAllTraffic",
   "Result",
   "ResultList",

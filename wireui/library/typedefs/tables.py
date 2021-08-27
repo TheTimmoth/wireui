@@ -2,7 +2,14 @@
 # Table for wireguard
 # Author: Tim Schlottmann
 
+from typing import Union
+
 from .exceptions import PeerDoesNotExistError
+
+from .result import MESSAGE_LEVEL
+from .result import Message
+from .result import MessageContent
+from .result import Result
 
 
 class Table():
@@ -95,6 +102,40 @@ class Table():
         f"Dimension mismatch: len(r) ({len(r)}) != self.m ({self.m})")
 
 
+class CONNECTION_TABLE_MESSAGE_TYPE():
+  @property
+  def DIMENSION_MISMATCH():
+    return 0
+
+  @property
+  def SELF_CONNECTION():
+    return 1
+
+  @property
+  def MAIN_PEER_MISSING():
+    return 2
+
+  @property
+  def MAIN_PEER_NOT_EXISTS():
+    return 3
+
+  @property
+  def MAIN_PEER_NOT_OUTGOING():
+    return 4
+
+
+class ConnectionTableMessageContent(MessageContent):
+  message_type: int
+  peer: str
+  i: int
+  j: int
+  actual: Union[int, str]
+  should: Union[int, str]
+
+
+ConnectionTableMessage = Message[ConnectionTableMessageContent]
+
+
 class ConnectionTable(Table):
   """ ConnectionTable for peers """
   def __init__(self, peer_names: list):
@@ -109,22 +150,16 @@ class ConnectionTable(Table):
   def __repr__(self):
     return f"{type(self).__name__}({self.row_names})"
 
-  def setitem(self, i: int, j: int, v: any):
+  def setitem(self, i: int, j: int, v: Union[int, str]):
     """ Set the item in row i and column j to value v
 
         Please execute check_integrity afterwards to make sure changed data is still valid """
 
-    if i == j and v == 1:
-      raise ValueError(
-        "A peer cannot be connected to itself. Please make sure that all diagonal elements are '0'!"
-      )
-    if j == self.m - 1 and not isinstance(v, str):
-      raise ValueError(f"v ({v}) has to be an str not {type(v)}")
-
     super().setitem(i, j, v)
 
-  def update(self, s: str):
+  def update(self, s: str) -> Result:
     """ Updates the table with a str representation of a ConnectionTable object """
+    r = Result()
 
     # Split lines and remove first line
     s = s.splitlines()
@@ -136,8 +171,17 @@ class ConnectionTable(Table):
       s[i] = s[i].split()
 
       if len(s[i]) != self.m:
-        raise ValueError(
-          f"Dimension mismatch: len(s[i]) ({len(s[i])}) != self.m ({self.m})")
+        r.append(
+          ConnectionTableMessage(
+            message_level=MESSAGE_LEVEL.ERROR,
+            message=ConnectionTableMessageContent(
+              message_type=CONNECTION_TABLE_MESSAGE_TYPE.DIMENSION_MISMATCH,
+              peer="",
+              i=i,
+              j=0,
+              actual=len(s[i]),
+              should=self.m)))
+        continue
 
       # Update table
       for j in range(self.m):
@@ -146,7 +190,9 @@ class ConnectionTable(Table):
         else:
           self.setitem(i, j, s[i][j])
 
-    self.__check_integrity()
+    self.__check_integrity(r)
+
+    return r
 
   def get_outgoing_connected_peers(self, name: str) -> list:
     """ Get a list of all peers that peer 'name' has an outgoing connection to """
@@ -200,28 +246,96 @@ class ConnectionTable(Table):
 
     return l
 
-  def __check_integrity(self):
+  def __check_integrity(self, r: Result):
     """ Check if the table has invalid entries """
-
-    msg = ""
 
     #Check if all diagonal elements are zero
     for i in range(self.n):
       if self.getitem(i, i) == 1:
         self.setitem(i, i, 0)
-        msg += f"Peer {self.row_names[i]}: A peer cannot be connected to itself. Please make sure that all diagonal elements are '0'!\n"
+        r.append(
+          ConnectionTableMessage(
+            message_level=MESSAGE_LEVEL.ERROR,
+            message=ConnectionTableMessageContent(
+              message_type=CONNECTION_TABLE_MESSAGE_TYPE.SELF_CONNECTION,
+              peer=self.row_names[i],
+              i=i,
+              j=i,
+              actual=1,
+              should=0)))
 
-    #Check if there is an main peer if there is an outgoing connection
+    # Check main_peers
     for i in range(self.n):
-      if len(self.get_outgoing_connected_peers(self.row_names[i])) > 0:
-        if not self.getitem(i, self.m - 1):
-          msg += f"Peer {self.row_names[i]}: If there is an outgoing connection there has to be a main_peer.\n"
+      # If there are outgoing peers...
+      if len(self.get_outgoing_connected_peers(
+          self.row_names[i])) > 0 or self.getitem(i, self.m - 1) != "None":
+
+        # ... check if there is a main_peer
+        if self.getitem(i, self.m - 1) == "None":
           self.setitem(i, self.m - 1,
                        self.get_outgoing_connected_peers(self.row_names[i])[0])
+          r.append(
+            ConnectionTableMessage(
+              message_level=MESSAGE_LEVEL.ERROR,
+              message=ConnectionTableMessageContent(
+                message_type=CONNECTION_TABLE_MESSAGE_TYPE.MAIN_PEER_MISSING,
+                peer=self.row_names[i],
+                i=i,
+                j=self.m - 1,
+                actual="",
+                should=self.getitem(i, self.m - 1))))
+
+        # ... check if the main_peer exists
+        if self.getitem(i, self.m - 1) not in self.row_names:
+          # Correct to the first outgoing peer if there is one
+          if self.get_outgoing_connected_peers(self.row_names[i]):
+            self.setitem(
+              i, self.m - 1,
+              self.get_outgoing_connected_peers(self.row_names[i])[0])
+            r.append(
+              ConnectionTableMessage(
+                message_level=MESSAGE_LEVEL.ERROR,
+                message=ConnectionTableMessageContent(
+                  message_type=CONNECTION_TABLE_MESSAGE_TYPE.
+                  MAIN_PEER_NOT_EXISTS,
+                  peer=self.row_names[i],
+                  i=i,
+                  j=self.m - 1,
+                  actual="",
+                  should=self.getitem(i, self.m - 1))))
+          # Correct to "None" otherwise
+          else:
+            self.setitem(i, self.m - 1, "None")
+            r.append(
+              ConnectionTableMessage(
+                message_level=MESSAGE_LEVEL.ERROR,
+                message=ConnectionTableMessageContent(
+                  message_type=CONNECTION_TABLE_MESSAGE_TYPE.
+                  MAIN_PEER_NOT_EXISTS,
+                  peer=self.row_names[i],
+                  i=i,
+                  j=self.m - 1,
+                  actual="",
+                  should="None")))
+
+        # ... check if the main_peer is outgoing
         elif self.getitem(i,
                           self.m - 1) not in self.get_outgoing_connected_peers(
                             self.row_names[i]):
-          msg += f"Peer {self.row_names[i]}: The main_peer is not an outgoing_connected_peer.\n"
-
-    if msg:
-      raise ValueError(msg[:-1])
+          j = 0
+          for name in self.column_names:
+            if self.getitem(i, self.m - 1) == name:
+              self.setitem(i, j, 1)
+              break
+            j += 1
+          r.append(
+            ConnectionTableMessage(
+              message_level=MESSAGE_LEVEL.ERROR,
+              message=ConnectionTableMessageContent(
+                message_type=CONNECTION_TABLE_MESSAGE_TYPE.
+                MAIN_PEER_NOT_OUTGOING,
+                peer=self.row_names[i],
+                i=i,
+                j=j,
+                actual=0,
+                should=1)))

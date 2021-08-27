@@ -17,32 +17,33 @@ from .sites import edit_site
 from .sites import delete_site
 from .sites import get_site_name
 
-from ..library import strings
 from ..library import WireUI
+from ..shared import strings
 
 
 def entrypoint_menu(w: WireUI):
   while True:
-    print_header("Main menu")
+    print_header(f"{strings['entrypoint_menu']['header']}")
 
     options = {
-      "1": "Create new site",
+      "1": f"{strings['entrypoint_menu']['add']}",
+      "a": f"{strings['entrypoint_menu']['about']}",
+      "q": f"{strings['misc']['exit']}",
     }
+    default = "1"
+    order = ["1", "a", "q"]
     if len(w.get_sites()):
       options.update({
-        "2": "Edit properties of existing site",
-        "3": "Delete existing site",
-        "4": "Edit connection table",
-        "5": "Go to the site menu",
-        "6": "Recreate config files",
-        "a": "Informations about this program",
-        "q": "Exit",
+        "2": f"{strings['entrypoint_menu']['edit']}",
+        "3": f"{strings['entrypoint_menu']['delete']}",
+        "4": f"{strings['entrypoint_menu']['edit_connections']}",
+        "5": f"{strings['entrypoint_menu']['site_menu']}",
+        "6": f"{strings['entrypoint_menu']['config_files']}",
       })
       default = "6"
-    else:
-      default = "1"
+      order = ["1", "2", "3", "4", "5", "6", "a", "q"]
 
-    choice = options_menu(options=options, default=default)
+    choice = options_menu(options=options, default=default, order=order)
 
     if choice == "1":
       leave_menu()
@@ -73,28 +74,26 @@ def entrypoint_menu(w: WireUI):
 def site_menu(w: WireUI, site_name: str):
   leave = False
   while not leave:
-    print_header(f"Site \"{site_name}\"")
+    print_header(f"{strings['site_menu']['header']}".format(site_name))
     peers_count = len(w.get_peer_names(site_name))
 
-    # TODO: Remove this hint when editing is possible
-    print_message(0,
-                  "For full editing of peers please use the sites.json file!")
-
     options = {
-      "1": "Add peer",
+      "1": f"{strings['site_menu']['add']}",
+      "b": f"{strings['misc']['back']}",
+      "q": f"{strings['misc']['exit']}",
     }
+    order = ["1", "b", "q"]
     default = "1"
     if len(w.get_peer_names(site_name)):
       options.update({
-        "2": "Edit properties of a peer",
-        "3": "Delete peer",
-        "4": "Create new keys for a peer",
-        "b": "Back",
-        "q": "Exit",
+        "2": f"{strings['site_menu']['edit']}",
+        "3": f"{strings['site_menu']['delete']}",
+        "4": f"{strings['site_menu']['rekey']}",
       })
+      order = ["1", "2", "3", "4", "b", "q"]
       default = "b"
 
-    choice = options_menu(options=options, default=default)
+    choice = options_menu(options=options, default=default, order=order)
 
     if choice == "1":
       add_peer(w, site_name)
@@ -114,17 +113,21 @@ def site_menu(w: WireUI, site_name: str):
 
 
 def __about():
-  print_header("About")
-  print_message(0, strings.name)
-  print_message(0, strings.description)
-  print_message(0, f"Version {strings.version}")
-  print_message(0, f"{strings.copyright} {strings.author}")
+  print_header(f"{strings['misc']['about']}")
+  print_message(0, f"{strings['app_information']['name']}")
+  print_message(0, f"{strings['app_information']['description']}")
+  print_message(
+    0, f"{strings['misc']['version']} {strings['app_information']['version']}")
+  print_message(
+    0,
+    f"{strings['app_information']['copyright']} {strings['app_information']['author']}"
+  )
   print_message(0, "")
-  input("Press ENTER to go back...")
+  input(f"{strings['misc']['enter_back']}")
   leave_menu()
 
 
 def __exit(i):
   clear_screen()
-  print_message(0, "Bye")
+  print_message(0, f"{strings['misc']['bye']}")
   exit(i)

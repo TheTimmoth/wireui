@@ -1,5 +1,3 @@
-from . import strings
-
 from .config import delete_config
 from .config import write_config
 
@@ -19,6 +17,8 @@ from .integrity import AAIPs_MESSAGE_TYPE
 from .integrity import DNS_MESSAGE_TYPE
 from .integrity import ENDPOINT_MESSAGE_TYPE
 from .integrity import IP_NETWORK_MESSAGE_TYPE
+from .integrity import KEY_DATATYPE_MESSAGE_TYPE
+from .integrity import KEY_PRESENCE_MESSAGE_TYPE
 from .integrity import PORT_MESSAGE_TYPE
 from .integrity import AAIPsMessageContent
 from .integrity import AAIPsMessage
@@ -28,6 +28,10 @@ from .integrity import EndpointMessageContent
 from .integrity import EndpointMessage
 from .integrity import IPNetworkMessage
 from .integrity import IPNetworkMessageContent
+from .integrity import KeyDatatypeMessage
+from .integrity import KeyDatatypeMessageContent
+from .integrity import KeyPresenceMessage
+from .integrity import KeyPresenceMessageContent
 from .integrity import PortMessage
 from .integrity import PortMessageContent
 
@@ -36,8 +40,11 @@ from .io_ import write_file
 
 from .keys import get_keys
 
+from .typedefs import CONNECTION_TABLE_MESSAGE_TYPE
 from .typedefs import MESSAGE_LEVEL
 from .typedefs import ConnectionTable
+from .typedefs import ConnectionTableMessage
+from .typedefs import ConnectionTableMessageContent
 from .typedefs import DataIntegrityError
 from .typedefs import JSONDecodeError
 from .typedefs import JsonDict
@@ -49,6 +56,7 @@ from .typedefs import Keys
 from .typedefs import PeerDoesExistError
 from .typedefs import PeerDoesNotExistError
 from .typedefs import PeerItems
+from .typedefs import ReadOnlyJsonDict
 from .typedefs import Result
 from .typedefs import ResultList
 from .typedefs import SettingDoesExistError
@@ -81,16 +89,20 @@ __all__ = [
   "read_file",
   "write_config",
   "write_file",
-  "strings",
   "AAIPs_MESSAGE_TYPE",
+  "CONNECTION_TABLE_MESSAGE_TYPE",
   "DNS_MESSAGE_TYPE",
   "ENDPOINT_MESSAGE_TYPE",
   "IP_NETWORK_MESSAGE_TYPE",
+  "KEY_DATATYPE_MESSAGE_TYPE",
+  "KEY_PRESENCE_MESSAGE_TYPE",
   "MESSAGE_LEVEL",
   "PORT_MESSAGE_TYPE",
   "AAIPsMessageContent",
   "AAIPsMessage",
   "ConnectionTable",
+  "ConnectionTableMessage",
+  "ConnectionTableMessageContent",
   "DataIntegrityError",
   "DNSMessageContent",
   "DNSMessage",
@@ -101,8 +113,12 @@ __all__ = [
   "JSONDecodeError",
   "JsonDict",
   "Keys",
+  "KeyDatatypeMessage",
+  "KeyDatatypeMessageContent",
   "KeyDoesExistError",
   "KeyDoesNotExistError",
+  "KeyPresenceMessage",
+  "KeyPresenceMessageContent",
   "Message",
   "MessageContent",
   "Peer",
@@ -111,6 +127,7 @@ __all__ = [
   "PeerItems",
   "PortMessage",
   "PortMessageContent",
+  "ReadOnlyJsonDict",
   "RedirectAllTraffic",
   "Result",
   "ResultList",

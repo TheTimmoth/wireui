@@ -101,3 +101,17 @@ Release 0.1.0b3
   - More readable error messages if there is an error in one of the JSON files
 * Known bugs and limitations:
   - Interface is not stable and can change drastically in future releases
+
+Release 0.1.0b4
+* Added:
+  - [UI] Add support for multiple languages (at the moment "en" and "de")
+  - [UI] [Library] Add key_presence and key_datatype startup messages
+  - [UI] During editing of site properties the connection table can now be changed
+  - [Library] ConnectionTable can handle more error situations and automatically correct them
+* Fixed:
+  - [Library] Fix use of wrong encoding during file read
+  - [UI] Menu navigation if no site/peer is created is now possible
+* Changed:
+  -
+* Known bugs and limitations:
+  - Interface is not stable and can change drastically in future releases
