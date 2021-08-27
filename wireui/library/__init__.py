@@ -40,8 +40,11 @@ from .io_ import write_file
 
 from .keys import get_keys
 
+from .typedefs import CONNECTION_TABLE_MESSAGE_TYPE
 from .typedefs import MESSAGE_LEVEL
 from .typedefs import ConnectionTable
+from .typedefs import ConnectionTableMessage
+from .typedefs import ConnectionTableMessageContent
 from .typedefs import DataIntegrityError
 from .typedefs import JSONDecodeError
 from .typedefs import JsonDict
@@ -87,6 +90,7 @@ __all__ = [
   "write_config",
   "write_file",
   "AAIPs_MESSAGE_TYPE",
+  "CONNECTION_TABLE_MESSAGE_TYPE",
   "DNS_MESSAGE_TYPE",
   "ENDPOINT_MESSAGE_TYPE",
   "IP_NETWORK_MESSAGE_TYPE",
@@ -97,6 +101,8 @@ __all__ = [
   "AAIPsMessageContent",
   "AAIPsMessage",
   "ConnectionTable",
+  "ConnectionTableMessage",
+  "ConnectionTableMessageContent",
   "DataIntegrityError",
   "DNSMessageContent",
   "DNSMessage",

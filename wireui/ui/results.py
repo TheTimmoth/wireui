@@ -1,6 +1,7 @@
 from typing import Optional
 
 from ..library import AAIPs_MESSAGE_TYPE
+from ..library import CONNECTION_TABLE_MESSAGE_TYPE
 from ..library import DNS_MESSAGE_TYPE
 from ..library import ENDPOINT_MESSAGE_TYPE
 from ..library import IP_NETWORK_MESSAGE_TYPE
@@ -10,6 +11,8 @@ from ..library import MESSAGE_LEVEL
 from ..library import PORT_MESSAGE_TYPE
 from ..library import AAIPsMessage
 from ..library import AAIPsMessageContent
+from ..library import ConnectionTableMessage
+from ..library import ConnectionTableMessageContent
 from ..library import DNSMessage
 from ..library import DNSMessageContent
 from ..library import EndpointMessage
@@ -54,9 +57,28 @@ def get_result_message(r: Result, start: Optional[str] = "") -> str:
       t += __get_key_presence_message(m)
     elif isinstance(m.get_message(), KeyDatatypeMessageContent):
       t += __get_key_datatype_message(m)
+    elif isinstance(m.get_message(), ConnectionTableMessageContent):
+      t += __get_connection_table_message(m)
     if t == start:
       t = ""
     s += t
+  return s
+
+
+def get_connection_table_result_message(r: Result,
+                                        start: Optional[str] = "") -> str:
+  s = ""
+  l = []
+  for m in r:
+    t = start
+    if isinstance(m.get_message(), ConnectionTableMessageContent):
+      t += __get_connection_table_message(m)
+    if t != start:
+      l.append(t)
+  l.sort()
+  s = ""
+  for u in l:
+    s += u
   return s
 
 
@@ -152,4 +174,48 @@ def __get_message_level(msg: Message) -> str:
     s += f"[{strings['misc']['warning']}] "
   elif msg.get_message_level() == MESSAGE_LEVEL.INFORMATION:
     s += f"[{strings['misc']['information']}] "
+  return s
+
+
+def __get_connection_table_message(msg: ConnectionTableMessage) -> str:
+  s = ""
+  if msg.get_message(
+  ).message_type == CONNECTION_TABLE_MESSAGE_TYPE.DIMENSION_MISMATCH:
+    s += __get_message_level(msg)
+    s += f"{strings['integrity']['connection_table_dimension']}\n".format(
+      msg.get_message().i + 1,
+      msg.get_message().actual,
+      msg.get_message().should)
+  elif msg.get_message(
+  ).message_type == CONNECTION_TABLE_MESSAGE_TYPE.SELF_CONNECTION:
+    s += __get_message_level(msg)
+    s += f"{strings['integrity']['connection_table_self_connection']}\n".format(
+      msg.get_message().i + 1,
+      msg.get_message().peer,
+      msg.get_message().j + 1,
+      msg.get_message().should)
+  elif msg.get_message(
+  ).message_type == CONNECTION_TABLE_MESSAGE_TYPE.MAIN_PEER_MISSING:
+    s += __get_message_level(msg)
+    s += f"{strings['integrity']['connection_table_main_peer_missing']}\n".format(
+      msg.get_message().i + 1,
+      msg.get_message().peer,
+      msg.get_message().j + 1,
+      msg.get_message().should)
+  elif msg.get_message(
+  ).message_type == CONNECTION_TABLE_MESSAGE_TYPE.MAIN_PEER_NOT_EXISTS:
+    s += __get_message_level(msg)
+    s += f"{strings['integrity']['connection_table_main_not_exist']}\n".format(
+      msg.get_message().i + 1,
+      msg.get_message().peer,
+      msg.get_message().j + 1,
+      msg.get_message().should)
+  elif msg.get_message(
+  ).message_type == CONNECTION_TABLE_MESSAGE_TYPE.MAIN_PEER_NOT_OUTGOING:
+    s += __get_message_level(msg)
+    s += f"{strings['integrity']['connection_table_main_peer_not_outgoing']}\n".format(
+      msg.get_message().i + 1,
+      msg.get_message().peer,
+      msg.get_message().j + 1,
+      msg.get_message().should)
   return s

@@ -17,6 +17,7 @@ from .console import print_header
 from .console import yes_no_menu
 
 from .results import get_result_message
+from .results import get_connection_table_result_message
 
 from ..library import check_additional_allowed_ips
 from ..library import check_endpoint
@@ -102,6 +103,8 @@ def edit_peer_connections(w: WireUI, site_name: str):
         p):
       if peer_old.persistent_keep_alive == -1:
         persistent_keep_alive = __get_persistent_keep_alive()
+      else:
+        persistent_keep_alive = peer_old.persistent_keep_alive
       redirect_all_traffic = __get_redirect_all_traffic(allow_ipv4, allow_ipv6)
       leave_menu()
     else:
@@ -497,12 +500,10 @@ def edit_dict(d: JsonDict = JsonDict()) -> JsonDict:
 
 def edit_connection_table(ct: ConnectionTable) -> ConnectionTable:
   s = ""
-  valid = False
-  while not valid:
-    try:
-      ct.update(edit_string(str(ct) + s))
-    except ValueError as e:
-      s = f"\n{e}"
-    else:
-      valid = True
+  while True:
+    r = ct.update(edit_string(str(ct) + "\n" + s))
+    s = get_connection_table_result_message(r)
+    if r.get_success():
+      break
+
   return ct

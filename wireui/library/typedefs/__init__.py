@@ -33,12 +33,18 @@ from .settings import Settings
 from .sites import SiteItems
 from .sites import Sites
 
+from .tables import CONNECTION_TABLE_MESSAGE_TYPE
 from .tables import ConnectionTable
+from .tables import ConnectionTableMessage
+from .tables import ConnectionTableMessageContent
 
 __all__ = [
   "MESSAGE_LEVEL",
   "BasicList",
+  "CONNECTION_TABLE_MESSAGE_TYPE",
   "ConnectionTable",
+  "ConnectionTableMessage",
+  "ConnectionTableMessageContent",
   "DataIntegrityError",
   "DataIntegrityMessage",
   "DataIntegrityResult",
