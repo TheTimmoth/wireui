@@ -64,10 +64,20 @@ def edit_peer_connections(w: WireUI, site_name: str):
     peer_old = w.get_peer(site_name, p)
     allow_ipv4, allow_ipv6, _ = w.get_networks(site_name)
 
+    if (not peer_old.ingoing_connected_peers
+        and ct.get_ingoing_connected_peers(p)
+        or (not peer_old.outgoing_connected_peers
+            and ct.get_outgoing_connected_peers(p))):
+      print_header(
+        f"{strings['shared_actions']['peer_connections_update_header']}".
+        format(p))
+      input(
+        f"{strings['shared_actions']['peer_connections_collect_infos']}\n{strings['misc']['enter_continue']}"
+        .format(p))
+
     # If a peer now has ingoing connections, ask for endpoint and port
     if not peer_old.ingoing_connected_peers and ct.get_ingoing_connected_peers(
         p):
-      print_header(f"Peer {p} (ingoing)")
       if peer_old.endpoint == "":
         endpoint = __get_endpoint(ct.get_ingoing_connected_peers(p))
       else:
@@ -90,7 +100,6 @@ def edit_peer_connections(w: WireUI, site_name: str):
     # If a peer now has outgoing connections, ask for persistent_keep_alive and redirect_all_traffic
     if not peer_old.outgoing_connected_peers and ct.get_outgoing_connected_peers(
         p):
-      print_header(f"Peer {p} (outgoing)")
       if peer_old.persistent_keep_alive == -1:
         persistent_keep_alive = __get_persistent_keep_alive()
       redirect_all_traffic = __get_redirect_all_traffic(allow_ipv4, allow_ipv6)
@@ -275,9 +284,9 @@ def __get_port(ingoing_connected_peers: list,
     print_header(f"{strings['shared_actions']['port_header']}")
     if old_port:
       port = input(
-        f"{strings['shared_actions']['port_header']}[{old_port}] ") or old_port
+        f"{strings['shared_actions']['port_enter']}[{old_port}] ") or old_port
     else:
-      port = input(f"{strings['shared_actions']['port_header']}")
+      port = input(f"{strings['shared_actions']['port_enter']}")
     try:
       port = int(port)
     except ValueError:
@@ -437,11 +446,11 @@ def __get_redirect_all_traffic(
     redirect_ipv6 = True
   if allow_ipv4:
     redirect_ipv4 = yes_no_menu(
-      f"{strings['shared_actions']['redirect_traffic_header']}".format("4"),
+      f"{strings['shared_actions']['redirect_traffic_yes_no']}".format("4"),
       redirect_ipv4)
   if allow_ipv6:
     redirect_ipv6 = yes_no_menu(
-      f"{strings['shared_actions']['redirect_traffic_header']}".format("6"),
+      f"{strings['shared_actions']['redirect_traffic_yes_no']}".format("6"),
       redirect_ipv6)
   leave_menu()
 

@@ -74,7 +74,7 @@ def entrypoint_menu(w: WireUI):
 def site_menu(w: WireUI, site_name: str):
   leave = False
   while not leave:
-    print_header(f"{strings['site']} \"{site_name}\"")
+    print_header(f"{strings['site_menu']['header']}".format(site_name))
     peers_count = len(w.get_peer_names(site_name))
 
     options = {
