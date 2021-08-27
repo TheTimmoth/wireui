@@ -1,12 +1,4 @@
-author = "Tim Schlottmann"
-copyright = "(C) 2020-2021"
-description = "Tool for creating and managing wireguard configs"
-name = "WireUI"
-version = "0.1.0b"
-
 from pkg_resources import resource_filename
-from typing import Optional
-from typing import Union
 
 from .language import get_language
 
@@ -34,14 +26,23 @@ class UI_Strings(ReadOnlyJsonDict):
     else:
       d = JsonDict(read_file(resource_filename("wireui.shared", "ui.json")),
                    {})
-      en = d["en"]
+      strings = d["en"]
       try:
         lang = d[get_language()]
       except KeyError:
         lang = {}
-      super().__init__(initialdata=lang, defaults=en)
+      for section in d["en"]:
+        try:
+          strings[section].update(lang[section])
+        except KeyError:
+          pass
+
+      super().__init__(initialdata=strings, defaults={})
       UI_Strings.__instance = self
       strings = self
 
   def __getitem__(self, site_name) -> str:
     return super().__getitem__(site_name)
+
+
+strings = UI_Strings.get_instance()

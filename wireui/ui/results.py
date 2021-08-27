@@ -26,7 +26,7 @@ from ..library import PortMessageContent
 from ..library import Result
 from ..library import ResultList
 
-from ..shared import UI_Strings
+from ..shared import strings
 
 
 def get_result_list_messages(rl: ResultList, start: Optional[str] = ""):
@@ -61,7 +61,6 @@ def get_result_message(r: Result, start: Optional[str] = "") -> str:
 
 
 def __get_dns_message(msg: DNSMessage) -> str:
-  strings = UI_Strings.get_instance()
   s = ""
   if msg.get_message().message_type == DNS_MESSAGE_TYPE.IP_ADDRESS_INVALID:
     s += __get_message_level(msg)
@@ -75,7 +74,6 @@ def __get_dns_message(msg: DNSMessage) -> str:
 
 
 def __get_ip_network_message(msg: IPNetworkMessage) -> str:
-  strings = UI_Strings.get_instance()
   s = ""
   if msg.get_message(
   ).message_type == IP_NETWORK_MESSAGE_TYPE.IP_NETWORK_INVALID:
@@ -91,7 +89,6 @@ def __get_ip_network_message(msg: IPNetworkMessage) -> str:
 
 
 def __get_endpoint_message(msg: EndpointMessage) -> str:
-  strings = UI_Strings.get_instance()
   s = ""
   if msg.get_message().message_type == ENDPOINT_MESSAGE_TYPE.ENDPOINT_INVALID:
     s += __get_message_level(msg)
@@ -101,7 +98,6 @@ def __get_endpoint_message(msg: EndpointMessage) -> str:
 
 
 def __get_port_message(msg: PortMessage) -> str:
-  strings = UI_Strings.get_instance()
   s = ""
   if msg.get_message().message_type == PORT_MESSAGE_TYPE.PORT_INVALID:
     s += __get_message_level(msg)
@@ -111,7 +107,6 @@ def __get_port_message(msg: PortMessage) -> str:
 
 
 def __get_aaips_message(msg: AAIPsMessage) -> str:
-  strings = UI_Strings.get_instance()
   s = ""
   if msg.get_message().message_type == AAIPs_MESSAGE_TYPE.IP_NETWORK_INVALID:
     s += __get_message_level(msg)
@@ -129,7 +124,6 @@ def __get_aaips_message(msg: AAIPsMessage) -> str:
 
 
 def __get_key_presence_message(msg: KeyPresenceMessage) -> str:
-  strings = UI_Strings.get_instance()
   s = ""
   if msg.get_message().message_type == KEY_PRESENCE_MESSAGE_TYPE.NOT_FOUND:
     s += __get_message_level(msg)
@@ -139,7 +133,6 @@ def __get_key_presence_message(msg: KeyPresenceMessage) -> str:
 
 
 def __get_key_datatype_message(msg: KeyDatatypeMessage) -> str:
-  strings = UI_Strings.get_instance()
   s = ""
   if msg.get_message(
   ).message_type == KEY_DATATYPE_MESSAGE_TYPE.DATATYPE_WRONG:
@@ -152,12 +145,11 @@ def __get_key_datatype_message(msg: KeyDatatypeMessage) -> str:
 
 
 def __get_message_level(msg: Message) -> str:
-  strings = UI_Strings.get_instance()
   s = ""
   if msg.get_message_level() == MESSAGE_LEVEL.ERROR:
-    s += f"[{strings['integrity']['error']}] "
+    s += f"[{strings['misc']['error']}] "
   elif msg.get_message_level() == MESSAGE_LEVEL.WARNING:
-    s += f"[{strings['integrity']['warning']}] "
+    s += f"[{strings['misc']['warning']}] "
   elif msg.get_message_level() == MESSAGE_LEVEL.INFORMATION:
-    s += f"[{strings['integrity']['information']}] "
+    s += f"[{strings['misc']['information']}] "
   return s

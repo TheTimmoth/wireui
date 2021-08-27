@@ -31,24 +31,30 @@ from ..library import read_file
 from ..library import RedirectAllTraffic
 from ..library import WireUI
 
+from ..shared import strings
+
 
 def create_wireguard_config(w: WireUI, site_name: str):
   created_files = w.create_wireguard_config(site_name)
-  print_message(1, "The following files have been created:")
+  print_message(1, f"{strings['shared_actions']['create_wg_cfg_list_files']}")
   print_list(created_files)
-  print_message(0, f"{len(created_files)} file(s) have been created.")
+  print_message(
+    0, f"{strings['shared_actions']['create_wg_cfg_files_created']}".format(
+      len(created_files)))
 
 
 def edit_peer_connections(w: WireUI, site_name: str):
   """ Edit the peer connection matrix """
 
-  print_header("Edit peer connections")
+  print_header(f"{strings['shared_actions']['peer_connections_header']}")
 
   w = WireUI.get_instance()
   ct = get_populated_connection_table(site_name=site_name)
 
   # Edit table
-  input("Please edit the connection table. Press ENTER to continue...")
+  input(
+    f"{strings['shared_actions']['peer_connections_edit']}\n{strings['misc']['enter_continue']}"
+  )
   ct = edit_connection_table(ct)
 
   leave_menu()
@@ -117,11 +123,11 @@ def edit_peer_connections(w: WireUI, site_name: str):
 def get_new_peer_properties(w: WireUI, site_name: str, peer_name: str,
                             dns: list, ct: ConnectionTable, allow_ipv4: bool,
                             allow_ipv6: bool) -> Peer:
-  print_header(f"Peer {peer_name}")
+  print_header(f"{strings['shared_actions']['peer_header']}".format(peer_name))
 
   input(
-    f"Collecting information for peer {peer_name}.\nPress ENTER to continue..."
-  )
+    f"{strings['shared_actions']['new_peer_collect_infos']}\n{strings['misc']['enter_continue']}"
+    .format(peer_name))
 
   # If peer has ingoing connections endpoint and port is needed
   if ct.get_ingoing_connected_peers(peer_name):
@@ -172,7 +178,7 @@ def change_existing_peer_properties(w: WireUI, site_name: str, peer_name: str,
                                     dns: list, ct: ConnectionTable,
                                     allow_ipv4: bool,
                                     allow_ipv6: bool) -> Peer:
-  print_header(f"Peer {peer_name}")
+  print_header(f"{strings['shared_actions']['peer_header']}".format(peer_name))
 
   old_peer = w.get_instance().get_peer(site_name=site_name,
                                        peer_name=peer_name)
@@ -244,18 +250,18 @@ def __get_endpoint(ingoing_connected_peers: list,
                    old_endpoint: Optional[str] = None) -> str:
   endpoint = old_endpoint
   while True:
-    print_header("Getting endpoint address")
+    print_header(f"{strings['shared_actions']['endpoint_header']}")
     if endpoint:
       endpoint = input(
-        f"Please enter the URL or IP address of the server: [{old_endpoint}] "
+        f"{strings['shared_actions']['endpoint_enter']}[{old_endpoint}] "
       ) or old_endpoint
     else:
-      endpoint = input("Please enter the URL or IP address of the server: ")
+      endpoint = input(f"{strings['shared_actions']['endpoint_enter']}")
     s = get_result_message(
       check_endpoint(endpoint=endpoint,
                      ingoing_connected_peers=ingoing_connected_peers))
     if s:
-      input(s + "Press Enter to continue...")
+      input(s + f"{strings['misc']['enter_retry']}")
       continue
     else:
       break
@@ -266,23 +272,22 @@ def __get_endpoint(ingoing_connected_peers: list,
 def __get_port(ingoing_connected_peers: list,
                old_port: Optional[int] = None) -> int:
   while True:
-    print_header("Enter port number")
+    print_header(f"{strings['shared_actions']['port_header']}")
     if old_port:
       port = input(
-        f"Please enter the port the adapter should listen on: [{old_port}] "
-      ) or old_port
+        f"{strings['shared_actions']['port_header']}[{old_port}] ") or old_port
     else:
-      port = input("Please enter the port the adapter should listen on: ")
+      port = input(f"{strings['shared_actions']['port_header']}")
     try:
       port = int(port)
     except ValueError:
-      print_error(0, "Error: The port was not a valid integer.")
+      print_error(0, f"{strings['shared_actions']['port_invalid']}")
       continue
     else:
       s = get_result_message(
         check_port(port, ingoing_connected_peers=ingoing_connected_peers))
       if s:
-        input(str(s) + "Press Enter to continue...")
+        input(str(s) + f"{strings['misc']['enter_retry']}")
         continue
     leave_menu()
     return port
@@ -290,11 +295,11 @@ def __get_port(ingoing_connected_peers: list,
 
 def __get_persistent_keep_alive(
     old_poersistent_keep_alive: Optional[int] = None) -> int:
-  print_header("NAT")
+  print_header(f"{strings['shared_actions']['nat_header']}")
   if old_poersistent_keep_alive:
-    result = yes_no_menu("Is the peer behind a NAT?", True)
+    result = yes_no_menu(f"{strings['shared_actions']['nat_yes_no']}", True)
   else:
-    result = yes_no_menu("Is the peer behind a NAT?")
+    result = yes_no_menu(f"{strings['shared_actions']['nat_yes_no']}")
   if result:
     leave_menu()
     return 25
@@ -312,22 +317,18 @@ def __get_additional_allowed_ips(
   finished = False
   while not finished:
     if not aaips:
-      print_header("Additional routable IPs")
-      if not yes_no_menu(
-          "Do you want to add an additional AllowedIP network?"):
+      print_header(f"{strings['shared_actions']['aaips_header']}")
+      if not yes_no_menu(f"{strings['shared_actions']['aaips_add_yes_no']}"):
         break
       else:
         print_header()
         aaips = convert_str_to_list(
-          input(
-            "Please enter all additional ip networks that should be routed to the host (use ' ' as separation): "
-          ))
+          input(f"{strings['shared_actions']['aaips_enter']}"))
 
-    print_header("Additional routable IPs")
-    print_message(0,
-                  "The following additional ip networks have been detected:")
+    print_header(f"{strings['shared_actions']['aaips_header']}")
+    print_message(0, f"{strings['shared_actions']['aaips_list']}")
     print_list(aaips)
-    correct = yes_no_menu("Is everything correct?")
+    correct = yes_no_menu(f"{strings['misc']['correct_yes_no']}")
     if not correct:
       aaips = convert_str_to_list(edit_string(convert_list_to_str(aaips)))
 
@@ -337,7 +338,7 @@ def __get_additional_allowed_ips(
     s = get_result_message(r)
 
     if s:
-      input(s + "Press ENTER to continue...")
+      input(s + f"{strings['misc']['enter_retry']}")
     else:
       break
 
@@ -348,33 +349,33 @@ def __get_additional_allowed_ips(
 def __get_post_up(old_post_up: Optional[str] = "") -> str:
   post_up = old_post_up
   while True:
-    print_header("PostUp")
+    print_header(f"{strings['shared_actions']['post_up_header']}")
     if post_up:
-      print_message(0, f"PostUp command is: {post_up}")
+      print_message(
+        0, f"{strings['shared_actions']['post_up_actual']}".format(post_up))
       options = {
-        "d": "Disable PostUp commmand",
-        "e": "Edit command",
-        "l": "Leave command as is",
+        "d": f"{strings['shared_actions']['post_up_menu_disable']}",
+        "e": f"{strings['shared_actions']['post_up_menu_edit']}",
+        "l": f"{strings['shared_actions']['post_up_menu_no_change']}",
       }
       choice = options_menu(options=options)
     else:
       choice = "a"
 
     if choice == "a":
-      post_up = input(
-        "Please enter the PostUp command line: (leave empty to disable) ")
+      post_up = input(f"{strings['shared_actions']['post_up_enter_new']}")
     elif choice == "e":
       post_up = input(
-        "Please enter the PostUp command line: (leave empty to make no changes) "
-      ) or post_up
+        f"{strings['shared_actions']['post_up_enter_existing']}") or post_up
     elif choice == "d" or choice == "l":
       pass
     if post_up:
-      print_message(0, f"PostUp command is now: {post_up}")
+      print_message(
+        0, f"{strings['shared_actions']['post_up_actual']}".format(post_up))
     else:
-      print_message(0, f"PostUp command is disabled")
+      print_message(0, f"{strings['shared_actions']['post_up_disabled']}")
 
-    if yes_no_menu("Is this correct?"):
+    if yes_no_menu(f"{strings['misc']['correct_yes_no']}"):
       break
 
   leave_menu()
@@ -384,33 +385,36 @@ def __get_post_up(old_post_up: Optional[str] = "") -> str:
 def __get_post_down(old_post_down: Optional[str] = "") -> str:
   post_down = old_post_down
   while True:
-    print_header("PostDown")
+    print_header(f"{strings['shared_actions']['post_down_header']}")
     if post_down:
-      print_message(0, f"PostDown command is: {post_down}")
+      print_message(
+        0,
+        f"{strings['shared_actions']['post_down_actual']}".format(post_down))
       options = {
-        "d": "Disable PostDown commmand",
-        "e": "Edit command",
-        "l": "Leave command as is",
+        "d": f"{strings['shared_actions']['post_down_menu_disable']}",
+        "e": f"{strings['shared_actions']['post_down_menu_edit']}",
+        "l": f"{strings['shared_actions']['post_down_menu_no_change']}",
       }
       choice = options_menu(options=options)
     else:
       choice = "a"
 
     if choice == "a":
-      post_down = input(
-        "Please enter the PostDown command line: (leave empty to disable) ")
+      post_down = input(f"{strings['shared_actions']['post_down_enter_new']}")
     elif choice == "e":
       post_down = input(
-        "Please enter the PostDown command line: (leave empty to make no changes) "
+        f"{strings['shared_actions']['post_down_enter_existing']}"
       ) or post_down
     elif choice == "d" or choice == "l":
       pass
-
     if post_down:
-      print_message(0, f"PostDown command is now: {post_down}")
+      print_message(
+        0,
+        f"{strings['shared_actions']['post_down_actual']}".format(post_down))
     else:
-      print_message(0, f"PostDown command is disabled")
-    if yes_no_menu("Is this correct?"):
+      print_message(0, f"{strings['shared_actions']['post_down_disabled']}")
+
+    if yes_no_menu(f"{strings['misc']['correct_yes_no']}"):
       break
 
   leave_menu()
@@ -423,7 +427,7 @@ def __get_redirect_all_traffic(
   old_redirect_all_traffic: Optional[RedirectAllTraffic] = None
 ) -> RedirectAllTraffic:
 
-  print_header("Redirect traffic")
+  print_header(f"{strings['shared_actions']['redirect_traffic_header']}")
 
   if old_redirect_all_traffic:
     redirect_ipv4 = old_redirect_all_traffic.ipv4
@@ -433,11 +437,11 @@ def __get_redirect_all_traffic(
     redirect_ipv6 = True
   if allow_ipv4:
     redirect_ipv4 = yes_no_menu(
-      "Please enter if all IPv4 traffic from this peer should be redirected:",
+      f"{strings['shared_actions']['redirect_traffic_header']}".format("4"),
       redirect_ipv4)
   if allow_ipv6:
     redirect_ipv6 = yes_no_menu(
-      "Please enter if all IPv6 traffic from this peer should be redirected:",
+      f"{strings['shared_actions']['redirect_traffic_header']}".format("6"),
       redirect_ipv6)
   leave_menu()
 
@@ -447,8 +451,8 @@ def __get_redirect_all_traffic(
 def get_input(msg: str) -> str:
   s = input(msg + ": ")
   while True:
-    print_message(0, f"Detected the following:\n{s}")
-    if yes_no_menu("Is this correct?"):
+    print_message(0, f"{strings['shared_actions']['input_detect']}\n{s}")
+    if yes_no_menu(f"{strings['misc']['correct_yes_no']}"):
       break
     else:
       s = edit_string(s)

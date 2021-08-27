@@ -109,7 +109,6 @@ Release 0.1.0b4
   - [UI] During editing of site properties the connection table can now be changed
 * Fixed:
   - [Library] Fix use of wrong encoding during file read
-  - [Library] Fix wrong submission of key that is checked in key_datatype
   - [UI] Menu navigation if no site/peer is created is now possible
 * Changed:
   -

@@ -10,13 +10,12 @@ from .results import get_result_list_messages
 
 from ..library import WireUI
 
-from ..shared import UI_Strings
+from ..shared import strings
 
 
 def run_ui():
 
   w = WireUI.get_instance()
-  strings = UI_Strings.get_instance()
 
   if not w.startup_result.get_success():
     print_header(f"{strings['integrity']['import_results']}")

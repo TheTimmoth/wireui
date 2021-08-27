@@ -19,11 +19,9 @@ from .sites import get_site_name
 
 from ..library import WireUI
 from ..shared import strings
-from ..shared import UI_Strings
 
 
 def entrypoint_menu(w: WireUI):
-  strings = UI_Strings.get_instance()
   while True:
     print_header(f"{strings['entrypoint_menu']['header']}")
 
@@ -32,6 +30,8 @@ def entrypoint_menu(w: WireUI):
       "a": f"{strings['entrypoint_menu']['about']}",
       "q": f"{strings['misc']['exit']}",
     }
+    default = "1"
+    order = ["1", "a", "q"]
     if len(w.get_sites()):
       options.update({
         "2": f"{strings['entrypoint_menu']['edit']}",
@@ -41,10 +41,9 @@ def entrypoint_menu(w: WireUI):
         "6": f"{strings['entrypoint_menu']['config_files']}",
       })
       default = "6"
-    else:
-      default = "1"
+      order = ["1", "2", "3", "4", "5", "6", "a", "q"]
 
-    choice = options_menu(options=options, default=default)
+    choice = options_menu(options=options, default=default, order=order)
 
     if choice == "1":
       leave_menu()
@@ -73,7 +72,6 @@ def entrypoint_menu(w: WireUI):
 
 
 def site_menu(w: WireUI, site_name: str):
-  strings = UI_Strings.get_instance()
   leave = False
   while not leave:
     print_header(f"{strings['site']} \"{site_name}\"")
@@ -84,6 +82,7 @@ def site_menu(w: WireUI, site_name: str):
       "b": f"{strings['misc']['back']}",
       "q": f"{strings['misc']['exit']}",
     }
+    order = ["1", "b", "q"]
     default = "1"
     if len(w.get_peer_names(site_name)):
       options.update({
@@ -91,9 +90,10 @@ def site_menu(w: WireUI, site_name: str):
         "3": f"{strings['site_menu']['delete']}",
         "4": f"{strings['site_menu']['rekey']}",
       })
+      order = ["1", "2", "3", "4", "b", "q"]
       default = "b"
 
-    choice = options_menu(options=options, default=default)
+    choice = options_menu(options=options, default=default, order=order)
 
     if choice == "1":
       add_peer(w, site_name)
@@ -113,19 +113,21 @@ def site_menu(w: WireUI, site_name: str):
 
 
 def __about():
-  strings_ = UI_Strings.get_instance()
-  print_header(f"{strings_['misc']['about']}")
-  print_message(0, strings.name)
-  print_message(0, strings.description)
-  print_message(0, f"{strings_['misc']['version']} {strings.version}")
-  print_message(0, f"{strings.copyright} {strings.author}")
+  print_header(f"{strings['misc']['about']}")
+  print_message(0, f"{strings['app_information']['name']}")
+  print_message(0, f"{strings['app_information']['description']}")
+  print_message(
+    0, f"{strings['misc']['version']} {strings['app_information']['version']}")
+  print_message(
+    0,
+    f"{strings['app_information']['copyright']} {strings['app_information']['author']}"
+  )
   print_message(0, "")
-  input(f"{strings_['misc']['enter_back']}")
+  input(f"{strings['misc']['enter_back']}")
   leave_menu()
 
 
 def __exit(i):
-  strings = UI_Strings.get_instance()
   clear_screen()
   print_message(0, f"{strings['misc']['bye']}")
   exit(i)
