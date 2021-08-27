@@ -1,3 +1,9 @@
+""" Contains all kinds of classes needed for WireUI
+
+Author: Tim Schlottmann
+Created: 2020-05-24
+"""
+
 from .dicts import JSONDecodeError
 from .dicts import JsonDict
 from .dicts import ReadOnlyJsonDict
