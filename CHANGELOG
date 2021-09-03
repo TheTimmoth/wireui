@@ -120,8 +120,8 @@ Release 0.1.0b5
 * Added:
   -
 * Fixed:
-  -
+  - [UI] Result of configuration file creation is now readable
 * Changed:
-  -
+  - [UI] [Library] Enhanced code documentation
 * Known bugs and limitations:
   -

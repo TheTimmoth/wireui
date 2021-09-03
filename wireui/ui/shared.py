@@ -36,12 +36,17 @@ from ..shared import strings
 
 
 def create_wireguard_config(w: WireUI, site_name: str):
+  print_header(f"{strings['shared_actions']['create_wg_cfg_header']}")
+
   created_files = w.create_wireguard_config(site_name)
   print_message(1, f"{strings['shared_actions']['create_wg_cfg_list_files']}")
   print_list(created_files)
   print_message(
     0, f"{strings['shared_actions']['create_wg_cfg_files_created']}".format(
       len(created_files)))
+  input(f"{strings['misc']['enter_continue']}")
+
+  leave_menu()
 
 
 def edit_peer_connections(w: WireUI, site_name: str):
@@ -65,13 +70,13 @@ def edit_peer_connections(w: WireUI, site_name: str):
     peer_old = w.get_peer(site_name, p)
     allow_ipv4, allow_ipv6, _ = w.get_networks(site_name)
 
-    if (not peer_old.ingoing_connected_peers
-        and ct.get_ingoing_connected_peers(p)
-        or (not peer_old.outgoing_connected_peers
-            and ct.get_outgoing_connected_peers(p))):
+    if (not peer_old.ingoing_connected_peers and
+        ct.get_ingoing_connected_peers(p) or
+        (not peer_old.outgoing_connected_peers and
+         ct.get_outgoing_connected_peers(p))):
       print_header(
-        f"{strings['shared_actions']['peer_connections_update_header']}".
-        format(p))
+        f"{strings['shared_actions']['peer_connections_update_header']}".format(
+          p))
       input(
         f"{strings['shared_actions']['peer_connections_collect_infos']}\n{strings['misc']['enter_continue']}"
         .format(p))
@@ -188,12 +193,10 @@ def get_new_peer_properties(w: WireUI, site_name: str, peer_name: str,
 
 def change_existing_peer_properties(w: WireUI, site_name: str, peer_name: str,
                                     dns: list, ct: ConnectionTable,
-                                    allow_ipv4: bool,
-                                    allow_ipv6: bool) -> Peer:
+                                    allow_ipv4: bool, allow_ipv6: bool) -> Peer:
   print_header(f"{strings['shared_actions']['peer_header']}".format(peer_name))
 
-  old_peer = w.get_instance().get_peer(site_name=site_name,
-                                       peer_name=peer_name)
+  old_peer = w.get_instance().get_peer(site_name=site_name, peer_name=peer_name)
 
   # If peer has ingoing connections endpoint and port is needed
   if ct.get_ingoing_connected_peers(peer_name):
@@ -400,8 +403,7 @@ def __get_post_down(old_post_down: Optional[str] = "") -> str:
     print_header(f"{strings['shared_actions']['post_down_header']}")
     if post_down:
       print_message(
-        0,
-        f"{strings['shared_actions']['post_down_actual']}".format(post_down))
+        0, f"{strings['shared_actions']['post_down_actual']}".format(post_down))
       options = {
         "d": f"{strings['shared_actions']['post_down_menu_disable']}",
         "e": f"{strings['shared_actions']['post_down_menu_edit']}",
@@ -415,14 +417,12 @@ def __get_post_down(old_post_down: Optional[str] = "") -> str:
       post_down = input(f"{strings['shared_actions']['post_down_enter_new']}")
     elif choice == "e":
       post_down = input(
-        f"{strings['shared_actions']['post_down_enter_existing']}"
-      ) or post_down
+        f"{strings['shared_actions']['post_down_enter_existing']}") or post_down
     elif choice == "d" or choice == "l":
       pass
     if post_down:
       print_message(
-        0,
-        f"{strings['shared_actions']['post_down_actual']}".format(post_down))
+        0, f"{strings['shared_actions']['post_down_actual']}".format(post_down))
     else:
       print_message(0, f"{strings['shared_actions']['post_down_disabled']}")
 

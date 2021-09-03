@@ -58,10 +58,11 @@ def entrypoint_menu(w: WireUI):
       leave_menu()
       edit_peer_connections(w, get_site_name(w, should_exist=True))
     elif choice == "5":
+      leave_menu()
       site_menu(w, get_site_name(w, True))
     elif choice == "6":
-      create_wireguard_config(w, get_site_name(w, should_exist=True))
       leave_menu()
+      create_wireguard_config(w, get_site_name(w, should_exist=True))
     elif choice == "a":
       leave_menu()
       __about()
